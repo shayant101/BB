@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BistroBoard - Restaurant Supplier Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'sans': ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: '#2563EB',
+                        secondary: '#10B981',
+                        accent: '#F59E0B',
+                        danger: '#EF4444',
+                        gray: {
+                            50: '#F9FAFB',
+                            100: '#F3F4F6',
+                            200: '#E5E7EB',
+                            300: '#D1D5DB',
+                            400: '#9CA3AF',
+                            500: '#6B7280',
+                            600: '#4B5563',
+                            700: '#374151',
+                            800: '#1F2937',
+                            900: '#111827',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .sidebar-transition { transition: all 0.3s ease-in-out; }
+        .card-hover { transition: all 0.2s ease-in-out; }
+        .card-hover:hover { transform: translateY(-2px); box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); }
+        .btn-primary { @apply bg-primary hover:bg-blue-700 text-white font-medium py-2.5 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2; }
+        .btn-secondary { @apply bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2.5 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-2; }
+        .status-pending { @apply bg-amber-100 text-amber-800 px-3 py-1 rounded-full text-sm font-medium; }
+        .status-confirmed { @apply bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium; }
+        .status-shipped { @apply bg-teal-100 text-teal-800 px-3 py-1 rounded-full text-sm font-medium; }
+        .status-fulfilled { @apply bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium; }
+        .status-cancelled { @apply bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm font-medium; }
+        .input-field { @apply w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-colors duration-200; }
+        .loading-spinner { animation: spin 1s linear infinite; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .nav-item { @apply text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors duration-200; }
+        .nav-item-active { @apply text-primary bg-blue-50 border-r-2 border-primary; }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans">
+    <div id="app">
+        <!-- Login Page -->
+        <div id="loginPage" class="min-h-screen flex">
+            <!-- Left Side - Branding -->
+            <div class="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-primary to-blue-800 relative overflow-hidden">
+                <div class="absolute inset-0 bg-black opacity-20"></div>
+                <div class="relative z-10 flex flex-col justify-center px-12 text-white">
+                    <div class="mb-8">
+                        <h1 class="text-5xl font-bold mb-4">BistroBoard</h1>
+                        <p class="text-xl text-blue-100 leading-relaxed">Streamline your restaurant-supplier relationships with modern order management.</p>
+                    </div>
+                    <div class="space-y-4 text-blue-100">
+                        <div class="flex items-center space-x-3">
+                            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                            </svg>
+                            <span>Real-time order tracking</span>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                            </svg>
+                            <span>Seamless communication</span>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                            </svg>
+                            <span>Professional order management</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Side - Login Form -->
+            <div class="w-full lg:w-1/2 flex items-center justify-center px-8 py-12">
+                <div class="w-full max-w-md">
+                    <div class="text-center mb-8 lg:hidden">
+                        <h1 class="text-3xl font-bold text-gray-900 mb-2">BistroBoard</h1>
+                        <p class="text-gray-600">Restaurant-Supplier Management</p>
+                    </div>
+
+                    <div class="bg-white rounded-2xl shadow-xl p-8">
+                        <div class="text-center mb-8">
+                            <h2 class="text-2xl font-bold text-gray-900 mb-2">Welcome back</h2>
+                            <p class="text-gray-600">Sign in to your account</p>
+                        </div>
+
+                        <form id="loginForm" class="space-y-6">
+                            <div>
+                                <label for="username" class="block text-sm font-medium text-gray-700 mb-2">Username</label>
+                                <input id="username" type="text" class="input-field" placeholder="Enter your username" required>
+                            </div>
+
+                            <div>
+                                <label for="password" class="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                                <input id="password" type="password" class="input-field" placeholder="Enter your password" required>
+                            </div>
+
+                            <div id="errorMessage" class="hidden bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm"></div>
+
+                            <button type="submit" class="w-full btn-primary text-lg py-3" id="loginButton">
+                                <span id="loginText">Sign In</span>
+                                <svg id="loginSpinner" class="hidden w-5 h-5 ml-2 loading-spinner" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M10 3v3l4-4-4-4v3c-4.42 0-8 3.58-8 8s3.58 8 8 8c1.57 0 3.04-.46 4.28-1.26l-1.45-1.45C11.76 12.53 10.92 13 10 13c-1.65 0-3-1.35-3-3s1.35-3 3-3z"></path>
+                                </svg>
+                            </button>
+                        </form>
+
+                        <div class="mt-8 pt-6 border-t border-gray-200">
+                            <p class="text-sm text-gray-600 mb-4 text-center font-medium">Demo Accounts</p>
+                            <div class="grid grid-cols-2 gap-3">
+                                <button onclick="fillDemo('restaurant')" class="btn-secondary text-sm py-3">
+                                    <div class="flex flex-col items-center">
+                                        <svg class="w-5 h-5 mb-1" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.35 2.524 1 1 0 01-1.4 0zM6 18a1 1 0 001-1v-2.065a8.935 8.935 0 00-2-.712V17a1 1 0 001 1z"></path>
+                                        </svg>
+                                        Restaurant
+                                    </div>
+                                </button>
+                                <button onclick="fillDemo('vendor')" class="btn-secondary text-sm py-3">
+                                    <div class="flex flex-col items-center">
+                                        <svg class="w-5 h-5 mb-1" fill="currentColor" viewBox="0 0 20 20">
+                                            <path d="M8 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM15 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z"></path>
+                                            <path d="M3 4a1 1 0 00-1 1v10a1 1 0 001 1h1.05a2.5 2.5 0 014.9 0H10a1 1 0 001-1V5a1 1 0 00-1-1H3zM14 7a1 1 0 00-1 1v6.05A2.5 2.5 0 0115.95 16H17a1 1 0 001-1V8a1 1 0 00-1-1h-3z"></path>
+                                        </svg>
+                                        Vendor
+                                    </div>
+                                </button>
+                            </div>
+                            <div class="mt-4 text-xs text-gray-500 text-center space-y-1">
+                                <p><strong>Restaurant:</strong> Mario's Pizzeria</p>
+                                <p><strong>Vendor:</strong> Fresh Valley Produce</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Application -->
+        <div id="mainApp" class="hidden min-h-screen bg-gray-50">
+            <!-- Sidebar -->
+            <div id="sidebar" class="fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg sidebar-transition">
+                <div class="flex flex-col h-full">
+                    <!-- Logo -->
+                    <div class="flex items-center justify-between h-16 px-6 border-b border-gray-200">
+                        <div class="flex items-center">
+                            <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+                                <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"></path>
+                                </svg>
+                            </div>
+                            <span class="ml-3 text-xl font-bold text-gray-900">BistroBoard</span>
+                        </div>
+                    </div>
+
+                    <!-- Navigation -->
+                    <nav class="flex-1 px-4 py-6 space-y-2">
+                        <div id="restaurantNav" class="hidden space-y-2">
+                            <a href="#" onclick="showView('dashboard')" class="nav-item nav-item-active flex items-center px-4 py-3 text-sm font-medium rounded-lg">
+                                <svg class="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"></path>
+                                </svg>
+                                Dashboard
+                            </a>
+                            <a href="#" onclick="showNewOrderModal()" class="nav-item flex items-center px-4 py-3 text-sm font-medium rounded-lg">
+                                <svg class="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"></path>
+                                </svg>
+                                Place New Order
+                            </a>
+                        </div>
+                        <div id="vendorNav" class="hidden space-y-2">
+                            <a href="#" onclick="showView('dashboard')" class="nav-item nav-item-active flex items-center px-4 py-3 text-sm font-medium rounded-lg">
+                                <svg class="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zM3 10a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6zM14 9a1 1 0 00-1 1v6a1 1 0 001 1h2a1 1 0 001-1v-6a1 1 0 00-1-1h-2z"></path>
+                                </svg>
+                                Dashboard
+                            </a>
+                        </div>
+                    </nav>
+
+                    <!-- User Menu -->
+                    <div class="px-4 py-4 border-t border-gray-200">
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
+                                <span id="userInitials" class="text-white font-medium text-sm"></span>
+                            </div>
+                            <div class="ml-3 flex-1">
+                                <p id="userName" class="text-sm font-medium text-gray-900"></p>
+                                <p id="userRole" class="text-xs text-gray-500"></p>
+                            </div>
+                            <button onclick="logout()" class="text-gray-400 hover:text-gray-600">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z" clip-rule="evenodd"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="ml-64">
+                <!-- Header -->
+                <header class="bg-white shadow-sm border-b border-gray-200">
+                    <div class="px-8 py-4">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h1 id="pageTitle" class="text-2xl font-bold text-gray-900">Dashboard</h1>
+                                <p id="pageSubtitle" class="text-sm text-gray-600 mt-1">Manage your orders and track progress</p>
+                            </div>
+                            <div class="flex items-center space-x-4">
+                                <button id="primaryAction" class="hidden btn-primary" onclick="showNewOrderModal()">
+                                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"></path>
+                                    </svg>
+                                    Place New Order
+                                </button>
+                                <button onclick="loadOrders()" class="btn-secondary">
+                                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd"></path>
+                                    </svg>
+                                    Refresh
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+
+                <!-- Content Area -->
+                <main class="p-8">
+                    <div id="dashboardContent"></div>
+                </main>
+            </div>
+        </div>
+
+        <!-- New Order Modal -->
+        <div id="newOrderModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto">
+                <div class="p-8">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-2xl font-bold text-gray-900">Place New Order</h2>
+                        <button onclick="closeNewOrderModal()" class="text-gray-400 hover:text-gray-600">
+                            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <form id="newOrderForm" class="space-y-6">
+                        <div>
+                            <label for="vendorSelect" class="block text-sm font-medium text-gray-700 mb-2">Select Vendor</label>
+                            <select id="vendorSelect" class="input-field" required>
+                                <option value="">Choose a vendor...</option>
+                                <option value="2">Fresh Valley Produce</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label for="orderItems" class="block text-sm font-medium text-gray-700 mb-2">Order Items</label>
+                            <textarea id="orderItems" rows="6" class="input-field" placeholder="Enter items and quantities:&#10;&#10;10 lbs Roma Tomatoes&#10;5 heads Iceberg Lettuce&#10;2 lbs Red Onions&#10;1 case Bell Peppers (mixed colors)" required></textarea>
+                            <p class="mt-2 text-sm text-gray-500">List each item with quantity and description. Be as specific as possible.</p>
+                        </div>
+
+                        <div>
+                            <label for="orderNotes" class="block text-sm font-medium text-gray-700 mb-2">Additional Notes (Optional)</label>
+                            <textarea id="orderNotes" rows="3" class="input-field" placeholder="Any special instructions, delivery preferences, or additional information..."></textarea>
+                        </div>
+
+                        <div id="orderError" class="hidden bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm"></div>
+
+                        <div class="flex space-x-4 pt-4">
+                            <button type="submit" class="flex-1 btn-primary" id="submitOrderButton">
+                                <span id="submitOrderText">Submit Order</span>
+                                <svg id="submitOrderSpinner" class="hidden w-5 h-5 ml-2 loading-spinner" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M10 3v3l4-4-4-4v3c-4.42 0-8 3.58-8 8s3.58 8 8 8c1.57 0 3.04-.46 4.28-1.26l-1.45-1.45C11.76 12.53 10.92 13 10 13c-1.65 0-3-1.35-3-3s1.35-3 3-3z"></path>
+                                </svg>
+                            </button>
+                            <button type="button" onclick="closeNewOrderModal()" class="flex-1 btn-secondary">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentUser = null;
+        let authToken = null;
+        let orders = [];
+
+        // API Base URL
+        const API_BASE = 'http://localhost:8000';
+
+        // Fill demo credentials
+        function fillDemo(role) {
+            if (role === 'restaurant') {
+                document.getElementById('username').value = 'restaurant1';
+                document.getElementById('password').value = 'demo123';
+            } else {
+                document.getElementById('username').value = 'vendor1';
+                document.getElementById('password').value = 'demo123';
+            }
+        }
+
+        // Show loading state
+        function showLoading(buttonId, textId, spinnerId) {
+            document.getElementById(buttonId).disabled = true;
+            document.getElementById(textId).classList.add('hidden');
+            document.getElementById(spinnerId).classList.remove('hidden');
+        }
+
+        // Hide loading state
+        function hideLoading(buttonId, textId, spinnerId) {
+            document.getElementById(buttonId).disabled = false;
+            document.getElementById(textId).classList.remove('hidden');
+            document.getElementById(spinnerId).classList.add('hidden');
+        }
+
+        // Login form handler
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const errorDiv = document.getElementById('errorMessage');
+            
+            showLoading('loginButton', 'loginText', 'loginSpinner');
+            errorDiv.classList.add('hidden');
+            
+            try {
+                const response = await fetch(`${API_BASE}/token`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Login failed');
+                }
+
+                const data = await response.json();
+                authToken = data.access_token;
+                currentUser = {
+                    id: data.user_id,
+                    role: data.role,
+                    name: data.name
+                };
+
+                // Hide login, show main app
+                document.getElementById('loginPage').classList.add('hidden');
+                document.getElementById('mainApp').classList.remove('hidden');
+                
+                // Setup user interface
+                setupUserInterface();
+                
+                // Load dashboard
+                showView('dashboard');
+                
+            } catch (error) {
+                errorDiv.textContent = 'Login failed. Please check your credentials.';
+                errorDiv.classList.remove('hidden');
+            } finally {
+                hideLoading('loginButton', 'loginText', 'loginSpinner');
+            }
+        });
+
+        // Setup user interface based on role
+        function setupUserInterface() {
+            // Update user info
+            document.getElementById('userName').textContent = currentUser.name;
+            document.getElementById('userRole').textContent = currentUser.role.charAt(0).toUpperCase() + currentUser.role.slice(1);
+            document.getElementById('userInitials').textContent = currentUser.name.split(' ').map(n => n[0]).join('').toUpperCase();
+
+            // Show appropriate navigation
+            if (currentUser.role === 'restaurant') {
+                document.getElementById('restaurantNav').classList.remove('hidden');
+                document.getElementById('primaryAction').classList.remove('hidden');
+            } else {
+                document.getElementById('vendorNav').classList.remove('hidden');
+            }
+        }
+
+        // Show different views
+        function showView(view) {
+            // Update navigation active state
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.className = 'nav-item flex items-center px-4 py-3 text-sm font-medium rounded-lg';
+            });
+            
+            if (view === 'dashboard') {
+                const dashboardLink = document.querySelector('[onclick="showView(\'dashboard\')"]');
+                if (dashboardLink) {
+                    dashboardLink.className = 'nav-item nav-item-active flex items-center px-4 py-3 text-sm font-medium rounded-lg';
+                }
+                loadDashboard();
+            }
+        }
+
+        // Load dashboard content
+        async function loadDashboard() {
+            const content = document.getElementById('dashboardContent');
+            
+            // Show loading state
+            content.innerHTML = `
+                <div class="flex items-center justify-center py-12">
+                    <div class="loading-spinner w-8 h-8 text-primary"></div>
+                    <span class="ml-3 text-gray-600">Loading dashboard...</span>
+                </div>
+            `;
+            
+            try {
+                await loadOrders();
+                displayDashboard();
+            } catch (error) {
+                content.innerHTML = `
+                    <div class="text-center py-12">
+                        <div class="text-red-500 mb-4">
+                            <svg class="w-12 h-12 mx-auto" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-lg font-medium text-gray-900 mb-2">Failed to load dashboard</h3>
+                        <p class="text-gray-600 mb-4">Please try refreshing the page</p>
+                        <button onclick="loadDashboard()" class="btn-primary">Try Again</button>
+                    </div>
+                `;
+            }
+        }
+
+        // Load orders from API
+        async function loadOrders() {
+            const response = await fetch(`${API_BASE}/api/orders`, {
+                headers: {
+                    'Authorization': `Bearer ${authToken}`
+                }
+            });
+
+            if (!response.ok) throw new Error('Failed to load orders');
+            orders = await response.json();
+        }
+
+        // Display dashboard based on user role
+        function displayDashboard() {
+            const content = document.getElementById('dashboardContent');
+            const stats = calculateStats(orders);
+            
+            if (currentUser.role === 'restaurant') {
+                content.innerHTML = `
+                    <!-- Stats Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                        ${createStatCard('Total Orders', stats.total, '📋', 'text-gray-600')}
+                        ${createStatCard('Pending', stats.pending, '⏳', 'text-amber-600')}
+                        ${createStatCard('Confirmed', stats.confirmed, '✅', 'text-blue-600')}
+                        ${createStatCard('Fulfilled', stats.fulfilled, '🚚', 'text-green-600')}
+                    </div>
+                    
+                    <!-- Orders Section -->
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                        <div class="px-6 py-4 border-b border-gray-200">
+                            <h2 class="text-lg font-semibold text-gray-900">Your Orders</h2>
+                        </div>
+                        <div class="p-6">
+                            ${orders.length === 0 ? createEmptyState('restaurant') : createOrdersList(orders)}
+                        </div>
+                    </div>
+                `;
+            } else {
+                content.innerHTML = `
+                    <!-- Stats Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                        ${createStatCard('Total Orders', stats.total, '📋', 'text-gray-600')}
+                        ${createStatCard('Pending', stats.pending, '⏳', 'text-amber-600')}
+                        ${createStatCard('Confirmed', stats.confirmed, '✅', 'text-blue-600')}
+                        ${createStatCard('Fulfilled', stats.fulfilled, '🚚', 'text-green-600')}
+                    </div>
+                    
+                    <!-- Orders Section -->
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+                        <div class="px-6 py-4 border-b border-gray-200">
+                            <h2 class="text-lg font-semibold text-gray-900">Incoming Orders</h2>
+                        </div>
+                        <div class="p-6">
+                            ${orders.length === 0 ? createEmptyState('vendor') : createOrdersList(orders)}
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // Calculate order statistics
+        function calculateStats(orders) {
+            return orders.reduce((acc, order) => {
+                acc.total++;
+                acc[order.status] = (acc[order.status] || 0) + 1;
+                return acc;
+            }, { total: 0, pending: 0, confirmed: 0, fulfilled: 0 });
+        }
+
+        // Create stat card HTML
+        function createStatCard(title, value, icon, colorClass) {
+            return `
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 card-hover">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-600">${title}</p>
+                            <p class="text-3xl font-bold ${colorClass} mt-2">${value}</p>
+                        </div>
+                        <div class="text-3xl">${icon}</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Create empty state HTML
+        function createEmptyState(role) {
+            const message = role === 'restaurant'
+                ? 'No orders yet. Create your first order to get started!'
+                : 'No incoming orders yet. Orders from restaurants will appear here.';
+            
+            return `
+                <div class="text-center py-12">
+                    <div class="text-6xl mb-4">📦</div>
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">No orders found</h3>
+                    <p class="text-gray-600 mb-6">${message}</p>
+                    ${role === 'restaurant' ? '<button onclick="showNewOrderModal()" class="btn-primary">Place Your First Order</button>' : ''}
+                </div>
+            `;
+        }
+
+        // Create orders list HTML
+        function createOrdersList(orders) {
+            return `
+                <div class="space-y-4">
+                    ${orders.map(order => createOrderCard(order)).join('')}
+                </div>
+            `;
+        }
+
+        // Create individual order card HTML
+        function createOrderCard(order) {
+            const otherParty = currentUser.role === 'restaurant' ? order.vendor : order.restaurant;
+            const statusClass = `status-${order.status}`;
+            const canUpdateStatus = currentUser.role === 'vendor' && order.status !== 'fulfilled';
+            
+            return `
+                <div class="bg-gray-50 rounded-lg p-6 card-hover border border-gray-200">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="flex-1">
+                            <div class="flex items-center space-x-3 mb-2">
+                                <h3 class="text-lg font-semibold text-gray-900">Order #${order.id}</h3>
+                                <span class="${statusClass}">${order.status.charAt(0).toUpperCase() + order.status.slice(1)}</span>
+                            </div>
+                            <p class="text-sm text-gray-600 mb-1">
+                                ${currentUser.role === 'restaurant' ? 'To: ' : 'From: '}
+                                <span class="font-medium text-gray-900">${otherParty.name}</span>
+                            </p>
+                            <p class="text-sm text-gray-500">${formatDate(order.created_at)}</p>
+                        </div>
+                        ${canUpdateStatus ? `
+                            <div class="flex space-x-2">
+                                ${getStatusButtons(order)}
+                            </div>
+                        ` : ''}
+                    </div>
+                    
+                    <div class="bg-white rounded-lg p-4 mb-4">
+                        <p class="text-sm font-medium text-gray-700 mb-2">Items:</p>
+                        <pre class="text-sm text-gray-600 whitespace-pre-wrap font-sans">${order.items_text}</pre>
+                    </div>
+                    
+                    ${order.notes ? `
+                        <div class="bg-white rounded-lg p-4 mb-4">
+                            <p class="text-sm font-medium text-gray-700 mb-2">Notes:</p>
+                            <p class="text-sm text-gray-600">${order.notes}</p>
+                        </div>
+                    ` : ''}
+                    
+                    <div class="flex items-center justify-between pt-4 border-t border-gray-200">
+                        <div class="flex items-center space-x-4 text-sm text-gray-600">
+                            <a href="tel:${otherParty.phone}" class="flex items-center hover:text-primary">
+                                <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"></path>
+                                </svg>
+                                ${otherParty.phone}
+                            </a>
+                            <a href="mailto:${otherParty.email}" class="flex items-center hover:text-primary">
+                                <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"></path>
+                                    <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"></path>
+                                </svg>
+                                Email
+                            </a>
+                        </div>
+                        <div class="text-sm text-gray-500">
+                            <svg class="w-4 h-4 inline mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"></path>
+                            </svg>
+                            ${otherParty.address.split(',')[0]}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Get status update buttons for vendors
+        function getStatusButtons(order) {
+            const nextStatus = getNextStatus(order.status);
+            if (!nextStatus) return '';
+            
+            return `
+                <button onclick="updateOrderStatus(${order.id}, '${nextStatus}')" class="btn-primary text-sm">
+                    ${getStatusButtonLabel(order.status)}
+                </button>
+            `;
+        }
+
+        // Get next status in workflow
+        function getNextStatus(currentStatus) {
+            switch (currentStatus) {
+                case 'pending': return 'confirmed';
+                case 'confirmed': return 'fulfilled';
+                default: return null;
+            }
+        }
+
+        // Get status button label
+        function getStatusButtonLabel(currentStatus) {
+            switch (currentStatus) {
+                case 'pending': return 'Confirm Order';
+                case 'confirmed': return 'Mark Fulfilled';
+                default: return '';
+            }
+        }
+
+        // Format date for display
+        function formatDate(dateString) {
+            return new Date(dateString).toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        // Update order status (vendor only)
+        async function updateOrderStatus(orderId, newStatus) {
+            try {
+                const response = await fetch(`${API_BASE}/api/orders/${orderId}/status`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({ status: newStatus })
+                });
+
+                if (!response.ok) throw new Error('Failed to update status');
+
+                await loadDashboard(); // Refresh the dashboard
+            } catch (error) {
+                console.error('Error updating order status:', error);
+                alert('Failed to update order status');
+            }
+        }
+
+        // Show new order modal
+        function showNewOrderModal() {
+            document.getElementById('newOrderModal').classList.remove('hidden');
+            document.getElementById('orderItems').focus();
+        }
+
+        // Close new order modal
+        function closeNewOrderModal() {
+            document.getElementById('newOrderModal').classList.add('hidden');
+            document.getElementById('newOrderForm').reset();
+            document.getElementById('orderError').classList.add('hidden');
+        }
+
+        // Handle new order form submission
+        document.getElementById('newOrderForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const vendorId = document.getElementById('vendorSelect').value;
+            const items = document.getElementById('orderItems').value;
+            const notes = document.getElementById('orderNotes').value;
+            const errorDiv = document.getElementById('orderError');
+            
+            showLoading('submitOrderButton', 'submitOrderText', 'submitOrderSpinner');
+            errorDiv.classList.add('hidden');
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/orders`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({
+                        vendor_id: parseInt(vendorId),
+                        items_text: items.trim(),
+                        notes: notes.trim()
+                    })
+                });
+
+                if (!response.ok) throw new Error('Failed to create order');
+
+                closeNewOrderModal();
+                await loadDashboard(); // Refresh the dashboard
+            } catch (error) {
+                errorDiv.textContent = 'Failed to create order. Please try again.';
+                errorDiv.classList.remove('hidden');
+            } finally {
+                hideLoading('submitOrderButton', 'submitOrderText', 'submitOrderSpinner');
+            }
+        });
+
+        // Logout function
+        function logout() {
+            currentUser = null;
+            authToken = null;
+            orders = [];
+            document.getElementById('mainApp').classList.add('hidden');
+            document.getElementById('loginPage').classList.remove('hidden');
+            document.getElementById('loginForm').reset();
+            document.getElementById('errorMessage').classList.add('hidden');
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('newOrderModal').addEventListener('click', (e) => {
+            if (e.target.id === 'newOrderModal') {
+                closeNewOrderModal();
+            }
+        });
+    </script>
+</body>
+</html>

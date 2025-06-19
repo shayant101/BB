@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BistroBoard Integrated Dashboard Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .integration-section {
+            margin-bottom: 40px;
+        }
+        
+        .integration-section h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+        
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        
+        .feature-card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 25px;
+            border-radius: 15px;
+            border-left: 5px solid #3498db;
+        }
+        
+        .feature-card h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1.4rem;
+        }
+        
+        .feature-card ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        
+        .feature-card li {
+            padding: 5px 0;
+            color: #495057;
+        }
+        
+        .feature-card li:before {
+            content: "✓ ";
+            color: #28a745;
+            font-weight: bold;
+            margin-right: 8px;
+        }
+        
+        .workflow-steps {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .workflow-steps h3 {
+            color: #495057;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+        
+        .step {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            border-left: 4px solid #28a745;
+        }
+        
+        .step-number {
+            background: #28a745;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+        
+        .step-content {
+            flex: 1;
+        }
+        
+        .step-title {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+        
+        .step-description {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        
+        .demo-button {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            margin: 10px;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .demo-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+        }
+        
+        .demo-button.secondary {
+            background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+        }
+        
+        .demo-button.secondary:hover {
+            box-shadow: 0 5px 15px rgba(108, 117, 125, 0.3);
+        }
+        
+        .highlight-box {
+            background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+            border: 1px solid #ffeaa7;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .highlight-box h3 {
+            color: #856404;
+            margin-bottom: 15px;
+        }
+        
+        .highlight-box p {
+            color: #856404;
+            margin-bottom: 10px;
+        }
+        
+        .tech-stack {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .tech-badge {
+            background: #e9ecef;
+            color: #495057;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🍽️ BistroBoard Integrated Dashboard</h1>
+            <p>Complete Marketplace Integration - Restaurant Dashboard with Built-in Vendor Discovery</p>
+        </div>
+        
+        <div class="content">
+            <!-- Integration Overview -->
+            <div class="integration-section">
+                <h2>🔗 Integration Complete</h2>
+                <div class="highlight-box">
+                    <h3>✅ Marketplace Successfully Integrated into Restaurant Dashboard</h3>
+                    <p>The vendor marketplace is now seamlessly integrated as a tab within the restaurant dashboard, providing a unified experience for order management and vendor discovery.</p>
+                </div>
+                
+                <div class="workflow-steps">
+                    <h3>🔄 Integrated User Workflow</h3>
+                    
+                    <div class="step">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <div class="step-title">Dashboard Access</div>
+                            <div class="step-description">Restaurant users log in and access their unified dashboard</div>
+                        </div>
+                    </div>
+                    
+                    <div class="step">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <div class="step-title">Tab Navigation</div>
+                            <div class="step-description">Switch between "Your Orders" and "Vendor Marketplace" tabs within the same interface</div>
+                        </div>
+                    </div>
+                    
+                    <div class="step">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <div class="step-title">Vendor Discovery</div>
+                            <div class="step-description">Browse, search, and filter vendors using the integrated marketplace</div>
+                        </div>
+                    </div>
+                    
+                    <div class="step">
+                        <div class="step-number">4</div>
+                        <div class="step-content">
+                            <div class="step-title">Quick Order Creation</div>
+                            <div class="step-description">Click "Quick Order" on any vendor to pre-select them in the order form</div>
+                        </div>
+                    </div>
+                    
+                    <div class="step">
+                        <div class="step-number">5</div>
+                        <div class="step-content">
+                            <div class="step-title">Order Management</div>
+                            <div class="step-description">Return to orders tab to track and manage all orders in one place</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Implementation Features -->
+            <div class="integration-section">
+                <h2>✨ Integration Features</h2>
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <h3>🎯 Unified Interface</h3>
+                        <ul>
+                            <li>Single dashboard with tabbed navigation</li>
+                            <li>Seamless switching between orders and marketplace</li>
+                            <li>Consistent UI/UX across all features</li>
+                            <li>No separate pages or complex navigation</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <h3>🚀 Smart Order Flow</h3>
+                        <ul>
+                            <li>Pre-select vendors from marketplace</li>
+                            <li>Automatic tab switching after order creation</li>
+                            <li>Vendor information carried over to order form</li>
+                            <li>Streamlined order creation process</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <h3>🔍 Enhanced Discovery</h3>
+                        <ul>
+                            <li>Full marketplace functionality within dashboard</li>
+                            <li>Advanced search and filtering</li>
+                            <li>Vendor details modal integration</li>
+                            <li>Category-based vendor browsing</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <h3>📊 Complete Management</h3>
+                        <ul>
+                            <li>Order statistics and tracking</li>
+                            <li>Vendor relationship management</li>
+                            <li>Profile management integration</li>
+                            <li>Unified data and state management</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Technical Implementation -->
+            <div class="integration-section">
+                <h2>⚙️ Technical Implementation</h2>
+                
+                <div class="feature-grid">
+                    <div class="feature-card">
+                        <h3>🏗️ Component Architecture</h3>
+                        <ul>
+                            <li>RestaurantDashboard with tab state management</li>
+                            <li>VendorMarketplace embedded as tab content</li>
+                            <li>NewOrderForm with vendor pre-selection</li>
+                            <li>Shared state for vendor data flow</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <h3>🔄 State Management</h3>
+                        <ul>
+                            <li>Active tab state (orders/marketplace)</li>
+                            <li>Preselected vendor state</li>
+                            <li>Order creation workflow state</li>
+                            <li>Unified data loading and caching</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <h3>🎨 UI/UX Integration</h3>
+                        <ul>
+                            <li>Consistent styling and theming</li>
+                            <li>Smooth tab transitions</li>
+                            <li>Contextual navigation hints</li>
+                            <li>Responsive design maintained</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <h3>🔗 Data Flow</h3>
+                        <ul>
+                            <li>Vendor selection from marketplace to order form</li>
+                            <li>Order creation updates dashboard stats</li>
+                            <li>Real-time data synchronization</li>
+                            <li>Error handling across components</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="highlight-box">
+                    <h3>🛠️ Technology Stack</h3>
+                    <p>The integration maintains the same robust technology foundation:</p>
+                    <div class="tech-stack">
+                        <span class="tech-badge">React/Next.js</span>
+                        <span class="tech-badge">Tailwind CSS</span>
+                        <span class="tech-badge">FastAPI</span>
+                        <span class="tech-badge">SQLAlchemy</span>
+                        <span class="tech-badge">JWT Auth</span>
+                        <span class="tech-badge">Headless UI</span>
+                        <span class="tech-badge">Heroicons</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Demo Links -->
+            <div class="integration-section">
+                <h2>🎮 Test the Integration</h2>
+                <div style="text-align: center; padding: 20px;">
+                    <p style="margin-bottom: 20px; color: #6c757d;">Experience the complete integrated dashboard:</p>
+                    <a href="http://localhost:8000/docs" class="demo-button" target="_blank">
+                        📚 API Documentation
+                    </a>
+                    <a href="file:///Users/user1/Desktop/bistroboard/marketplace-demo.html" class="demo-button secondary" target="_blank">
+                        🧪 Marketplace API Demo
+                    </a>
+                </div>
+                
+                <div class="highlight-box">
+                    <h3>🎯 Integration Benefits</h3>
+                    <p><strong>For Restaurants:</strong> Single interface for all vendor interactions - from discovery to ordering to management</p>
+                    <p><strong>For Development:</strong> Cleaner architecture, better user experience, and simplified navigation</p>
+                    <p><strong>For Business:</strong> Increased vendor discovery, streamlined ordering process, and better user retention</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

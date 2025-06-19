@@ -1,0 +1,56 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom styles */
+.btn-primary {
+  @apply bg-primary text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors;
+}
+
+.btn-secondary {
+  @apply bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors;
+}
+
+.btn-success {
+  @apply bg-secondary text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors;
+}
+
+.btn-warning {
+  @apply bg-warning text-white px-4 py-2 rounded-lg hover:bg-yellow-600 transition-colors;
+}
+
+.btn-danger {
+  @apply bg-danger text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors;
+}
+
+.card {
+  @apply bg-white rounded-lg shadow-md p-6;
+}
+
+.status-badge {
+  @apply px-3 py-1 rounded-full text-sm font-medium;
+}
+
+.status-pending {
+  @apply bg-orange-100 text-orange-800;
+}
+
+.status-confirmed {
+  @apply bg-blue-100 text-blue-800;
+}
+
+.status-fulfilled {
+  @apply bg-green-100 text-green-800;
+}
+
+.form-input {
+  @apply w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent;
+}
+
+.form-textarea {
+  @apply w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent resize-y;
+}
+
+.form-select {
+  @apply w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent bg-white;
+}
