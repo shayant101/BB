@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { getUser, getAuthToken, removeAuthToken } from '../../lib/api';
-import RestaurantDashboard from '../../components/RestaurantDashboard';
-import VendorDashboard from '../../components/VendorDashboard';
+import { getUser, getAuthToken, removeAuthToken } from '../../src/lib/api';
+import RestaurantDashboard from '../../src/components/RestaurantDashboard';
+import VendorDashboard from '../../src/components/VendorDashboard';
 
 export default function Dashboard() {
   const [user, setUser] = useState(null);

@@ -11,12 +11,21 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String, unique=True, index=True, nullable=False)
     password_hash = Column(String, nullable=False)
-    role = Column(String, nullable=False)  # "restaurant" or "vendor"
+    role = Column(String, nullable=False)  # "restaurant", "vendor", or "admin"
     name = Column(String, nullable=False)
     email = Column(String, nullable=False)
     phone = Column(String, nullable=False)
     address = Column(String, nullable=False)
     description = Column(Text, nullable=True)
+    
+    # Admin Command Center fields
+    is_active = Column(Boolean, default=True, nullable=False)
+    status = Column(String, default="active", nullable=False)  # "active", "inactive", "pending_approval"
+    deactivation_reason = Column(Text, nullable=True)
+    deactivated_by = Column(Integer, ForeignKey("users.id"), nullable=True)
+    deactivated_at = Column(DateTime, nullable=True)
+    last_login_at = Column(DateTime, nullable=True)
+    
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
@@ -24,6 +33,12 @@ class User(Base):
     restaurant_orders = relationship("Order", foreign_keys="Order.restaurant_id", back_populates="restaurant")
     vendor_orders = relationship("Order", foreign_keys="Order.vendor_id", back_populates="vendor")
     vendor_profile = relationship("VendorProfile", back_populates="user", uselist=False)
+    
+    # Admin relationships
+    deactivated_by_admin = relationship("User", remote_side=[id])
+    audit_logs_performed = relationship("AdminAuditLog", foreign_keys="AdminAuditLog.admin_id", back_populates="admin")
+    audit_logs_target = relationship("AdminAuditLog", foreign_keys="AdminAuditLog.target_user_id", back_populates="target_user")
+    user_events = relationship("UserEventLog", back_populates="user")
 
 class Order(Base):
     __tablename__ = "orders"
@@ -102,3 +117,56 @@ class VendorCategoryMapping(Base):
     __table_args__ = (
         {'sqlite_autoincrement': True},
     )
+
+
+class AdminAuditLog(Base):
+    """Immutable audit trail for all admin actions"""
+    __tablename__ = "admin_audit_logs"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    admin_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    target_user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    action = Column(String, nullable=False)  # "user_created", "user_deactivated", "user_reactivated", "impersonation_started"
+    details = Column(JSON, nullable=True)  # Additional context like reason, previous values, etc.
+    ip_address = Column(String, nullable=True)
+    user_agent = Column(String, nullable=True)
+    session_id = Column(String, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    
+    # Relationships
+    admin = relationship("User", foreign_keys=[admin_id], back_populates="audit_logs_performed")
+    target_user = relationship("User", foreign_keys=[target_user_id], back_populates="audit_logs_target")
+
+
+class UserEventLog(Base):
+    """Track key user events for support and analytics"""
+    __tablename__ = "user_event_logs"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    event_type = Column(String, nullable=False)  # "login", "logout", "password_reset", "profile_updated", "order_created"
+    details = Column(JSON, nullable=True)  # Additional event context
+    ip_address = Column(String, nullable=True)
+    user_agent = Column(String, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    
+    # Relationships
+    user = relationship("User", back_populates="user_events")
+
+
+class ImpersonationSession(Base):
+    """Track active impersonation sessions for security"""
+    __tablename__ = "impersonation_sessions"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    admin_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    target_user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    session_token = Column(String, unique=True, nullable=False)
+    expires_at = Column(DateTime, nullable=False)
+    is_active = Column(Boolean, default=True, nullable=False)
+    ended_at = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    
+    # Relationships
+    admin = relationship("User", foreign_keys=[admin_id])
+    target_user = relationship("User", foreign_keys=[target_user_id])

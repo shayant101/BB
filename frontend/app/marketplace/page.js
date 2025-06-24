@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import VendorMarketplace from '../../components/VendorMarketplace';
-import { getUser } from '../../lib/api';
+import VendorMarketplace from '../../src/components/VendorMarketplace';
+import { getUser } from '../../src/lib/api';
 
 export default function MarketplacePage() {
   const [user, setUser] = useState(null);

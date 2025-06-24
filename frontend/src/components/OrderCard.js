@@ -17,26 +17,26 @@ export default function OrderCard({ order, userRole, onClick, onStatusUpdate }) 
   const getStatusIcon = (status) => {
     switch (status) {
       case 'pending':
-        return <ClockIcon className="h-5 w-5 text-orange-500" />;
+        return <ClockIcon className="h-4 w-4" />;
       case 'confirmed':
-        return <CheckCircleIcon className="h-5 w-5 text-blue-500" />;
+        return <CheckCircleIcon className="h-4 w-4" />;
       case 'fulfilled':
-        return <TruckIcon className="h-5 w-5 text-green-500" />;
+        return <TruckIcon className="h-4 w-4" />;
       default:
-        return <ClockIcon className="h-5 w-5 text-gray-500" />;
+        return <ClockIcon className="h-4 w-4" />;
     }
   };
 
   const getStatusBadgeClass = (status) => {
     switch (status) {
       case 'pending':
-        return 'status-badge status-pending';
+        return 'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium bg-amber-100 text-amber-800';
       case 'confirmed':
-        return 'status-badge status-confirmed';
+        return 'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium bg-blue-100 text-blue-800';
       case 'fulfilled':
-        return 'status-badge status-fulfilled';
+        return 'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium bg-green-100 text-green-800';
       default:
-        return 'status-badge bg-gray-100 text-gray-800';
+        return 'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium bg-gray-100 text-gray-800';
     }
   };
 
@@ -94,26 +94,31 @@ export default function OrderCard({ order, userRole, onClick, onStatusUpdate }) 
   const otherParty = userRole === 'restaurant' ? order.vendor : order.restaurant;
 
   return (
-    <div className="card hover:shadow-lg transition-shadow cursor-pointer" onClick={onClick}>
-      <div className="flex justify-between items-start mb-4">
+    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-all duration-200 cursor-pointer" onClick={onClick}>
+      {/* Header Section */}
+      <div className="flex items-start justify-between mb-4">
         <div className="flex-1">
-          <div className="flex items-center space-x-3 mb-2">
-            <h3 className="text-lg font-semibold text-gray-900">
+          <div className="flex items-center gap-3 mb-3">
+            <h3 className="text-xl font-bold text-gray-900">
               Order #{order.id}
             </h3>
-            <span className={getStatusBadgeClass(order.status)}>
+            <div className={getStatusBadgeClass(order.status)}>
               {getStatusIcon(order.status)}
-              <span className="ml-1 capitalize">{order.status}</span>
-            </span>
+              <span className="capitalize">{order.status}</span>
+            </div>
           </div>
           
-          <div className="text-sm text-gray-600 mb-2">
-            {userRole === 'restaurant' ? 'To: ' : 'From: '}
-            <span className="font-medium text-gray-900">{otherParty.name}</span>
-          </div>
-          
-          <div className="text-sm text-gray-600">
-            {formatDate(order.created_at)}
+          <div className="space-y-1">
+            <div className="text-sm text-gray-600">
+              <span className="font-medium">
+                {userRole === 'restaurant' ? 'To: ' : 'From: '}
+              </span>
+              <span className="font-semibold text-gray-900">{otherParty.name}</span>
+            </div>
+            
+            <div className="text-sm text-gray-500">
+              {formatDate(order.created_at)}
+            </div>
           </div>
         </div>
 
@@ -125,63 +130,71 @@ export default function OrderCard({ order, userRole, onClick, onStatusUpdate }) 
               handleStatusUpdate(getNextStatus(order.status));
             }}
             disabled={updating}
-            className={`btn-primary text-sm ${updating ? 'opacity-50 cursor-not-allowed' : ''}`}
+            className={`btn-primary text-sm flex items-center gap-2 ${updating ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
-            {updating ? 'Updating...' : getNextStatusLabel(order.status)}
+            {updating ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                Updating...
+              </>
+            ) : (
+              getNextStatusLabel(order.status)
+            )}
           </button>
         )}
       </div>
 
-      {/* Order Items Preview */}
+      {/* Order Items Section */}
       <div className="mb-4">
-        <p className="text-sm font-medium text-gray-700 mb-1">Items:</p>
-        <p className="text-sm text-gray-600 bg-gray-50 p-2 rounded">
-          {truncateItems(order.items_text)}
-        </p>
+        <h4 className="text-sm font-semibold text-gray-700 mb-2">Items:</h4>
+        <div className="bg-gray-50 rounded-lg p-3">
+          <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">
+            {truncateItems(order.items_text)}
+          </p>
+        </div>
       </div>
 
-      {/* Contact Info */}
-      <div className="border-t pt-4">
+      {/* Notes Section */}
+      {order.notes && (
+        <div className="mb-4">
+          <h4 className="text-sm font-semibold text-gray-700 mb-2">Notes:</h4>
+          <div className="bg-blue-50 rounded-lg p-3">
+            <p className="text-sm text-gray-700 leading-relaxed">
+              {truncateItems(order.notes, 80)}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Contact Info Section */}
+      <div className="border-t border-gray-200 pt-4">
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4 text-sm text-gray-600">
-            <div className="flex items-center">
-              <PhoneIcon className="h-4 w-4 mr-1" />
-              <a 
-                href={`tel:${otherParty.phone}`}
-                onClick={(e) => e.stopPropagation()}
-                className="hover:text-primary"
-              >
-                {otherParty.phone}
-              </a>
-            </div>
-            <div className="flex items-center">
-              <EnvelopeIcon className="h-4 w-4 mr-1" />
-              <a 
-                href={`mailto:${otherParty.email}`}
-                onClick={(e) => e.stopPropagation()}
-                className="hover:text-primary"
-              >
-                Email
-              </a>
-            </div>
+          <div className="flex items-center gap-6">
+            <a 
+              href={`tel:${otherParty.phone}`}
+              onClick={(e) => e.stopPropagation()}
+              className="flex items-center gap-2 text-sm text-gray-600 hover:text-blue-600 transition-colors"
+            >
+              <PhoneIcon className="h-4 w-4" />
+              <span>{otherParty.phone}</span>
+            </a>
+            
+            <a 
+              href={`mailto:${otherParty.email}`}
+              onClick={(e) => e.stopPropagation()}
+              className="flex items-center gap-2 text-sm text-gray-600 hover:text-blue-600 transition-colors"
+            >
+              <EnvelopeIcon className="h-4 w-4" />
+              <span>Email</span>
+            </a>
           </div>
           
-          <div className="flex items-center text-sm text-gray-500">
-            <MapPinIcon className="h-4 w-4 mr-1" />
+          <div className="flex items-center gap-2 text-sm text-gray-500">
+            <MapPinIcon className="h-4 w-4 flex-shrink-0" />
             <span className="truncate max-w-32">{otherParty.address.split(',')[0]}</span>
           </div>
         </div>
       </div>
-
-      {/* Notes Preview */}
-      {order.notes && (
-        <div className="mt-3 pt-3 border-t">
-          <p className="text-sm font-medium text-gray-700 mb-1">Notes:</p>
-          <p className="text-sm text-gray-600">
-            {truncateItems(order.notes, 80)}
-          </p>
-        </div>
-      )}
     </div>
   );
 }

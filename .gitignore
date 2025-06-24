@@ -129,3 +129,47 @@ dist
 # Temporary folders
 tmp/
 temp/
+
+# Frontend backup
+frontend_backup/
+
+# Package lock files (optional - some teams prefer to include these)
+# package-lock.json
+# yarn.lock
+
+# TypeScript
+*.tsbuildinfo
+
+# Turbopack cache
+.turbo/
+
+# Vercel
+.vercel
+
+# Local development
+.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Python specific additions
+*.pyc
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+
+# FastAPI/Uvicorn
+.uvicorn-pid

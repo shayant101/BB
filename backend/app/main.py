@@ -2,11 +2,12 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .database import create_tables
 from .routers import auth, orders, profiles, marketplace, vendor_profile
+from . import admin_routes
 
 # Create FastAPI app
 app = FastAPI(
     title="BistroBoard API",
-    description="Restaurant-Supplier Order Management System",
+    description="Restaurant-Supplier Order Management System with Admin Command Center",
     version="1.0.0"
 )
 
@@ -25,6 +26,7 @@ app.include_router(orders.router, prefix="/api", tags=["orders"])
 app.include_router(profiles.router, prefix="/api", tags=["profiles"])
 app.include_router(marketplace.router, prefix="/api/marketplace", tags=["marketplace"])
 app.include_router(vendor_profile.router, prefix="/api/vendor", tags=["vendor-profile"])
+app.include_router(admin_routes.router, tags=["admin"])
 
 # Create database tables on startup
 @app.on_event("startup")
