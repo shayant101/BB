@@ -129,176 +129,199 @@ export default function RestaurantDashboard({ user }) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Fixed Header */}
-      <div className="sticky top-0 z-40 bg-white border-b border-gray-200 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div>
-              <h1 className="text-2xl font-black text-gray-900 tracking-tight">
-                BistroBoard
-              </h1>
-              <p className="text-sm text-gray-600 font-medium">Supply Command Center</p>
+    <div className="space-y-6">
+      {/* Header Actions */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900">Restaurant Dashboard</h2>
+          <p className="text-sm text-gray-600 mt-1">Manage your supply orders and vendors</p>
+        </div>
+        <div className="flex space-x-3">
+          <button
+            onClick={() => setShowProfile(true)}
+            className="btn-secondary flex items-center"
+          >
+            <UserIcon className="h-4 w-4 mr-2" />
+            Profile
+          </button>
+          <button
+            onClick={() => setShowNewOrderForm(true)}
+            className="btn-primary flex items-center"
+          >
+            <PlusIcon className="h-4 w-4 mr-2" />
+            Place Order
+          </button>
+        </div>
+      </div>
+      {/* Action Items Section - Most Important */}
+      {actionItems.length > 0 && (
+        <div className="bg-gradient-to-r from-red-50 to-orange-50 rounded-lg p-6 border border-red-200">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
+              <ExclamationTriangleIcon className="h-5 w-5 text-red-600" />
             </div>
-            
-            <div className="flex items-center space-x-3">
-              <button
-                onClick={() => setShowProfile(true)}
-                className="btn-secondary-neo flex items-center"
-              >
-                <UserIcon className="h-4 w-4 mr-2" />
-                Profile
-              </button>
-              <button
-                onClick={() => setShowNewOrderForm(true)}
-                className="btn-primary-neo flex items-center"
-              >
-                <PlusIcon className="h-4 w-4 mr-2" />
-                Place Order
-              </button>
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900">
+                Action Required
+              </h3>
+              <p className="text-sm text-gray-600">
+                {actionItems.length} order{actionItems.length > 1 ? 's' : ''} need{actionItems.length === 1 ? 's' : ''} your attention
+              </p>
+            </div>
+          </div>
+          
+          <div className="space-y-3">
+            {actionItems.map(order => (
+              <div key={order.id} className="bg-white rounded-lg p-4 border border-red-200 cursor-pointer hover:shadow-md transition-shadow" onClick={() => setActiveTab('orders')}>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                    <div>
+                      <p className="font-medium text-gray-900">
+                        {order.vendor.name}
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        Order #{order.id} • {order.status === 'pending' ? 'Pending 24+ hours' : 'Delivery overdue'}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <span className={`status-${order.status}`}>
+                      {order.status.toUpperCase()}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Status Overview - Modern Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="bg-white rounded-lg shadow p-6 border-l-4 border-gray-500">
+          <div className="flex items-center">
+            <div className="flex-shrink-0">
+              <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
+                <ClipboardDocumentListIcon className="h-5 w-5 text-gray-600" />
+              </div>
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-500">Total Orders</p>
+              <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-lg shadow p-6 border-l-4 border-yellow-500">
+          <div className="flex items-center">
+            <div className="flex-shrink-0">
+              <div className="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
+                <ClockIcon className="h-5 w-5 text-yellow-600" />
+              </div>
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-500">Pending</p>
+              <p className="text-2xl font-bold text-gray-900">{stats.pending}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-lg shadow p-6 border-l-4 border-blue-500">
+          <div className="flex items-center">
+            <div className="flex-shrink-0">
+              <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                <CheckCircleIcon className="h-5 w-5 text-blue-600" />
+              </div>
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-500">Confirmed</p>
+              <p className="text-2xl font-bold text-gray-900">{stats.confirmed}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-lg shadow p-6 border-l-4 border-green-500">
+          <div className="flex items-center">
+            <div className="flex-shrink-0">
+              <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                <TruckIcon className="h-5 w-5 text-green-600" />
+              </div>
+            </div>
+            <div className="ml-4">
+              <p className="text-sm font-medium text-gray-500">Fulfilled</p>
+              <p className="text-2xl font-bold text-gray-900">{stats.fulfilled}</p>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-        {/* Action Items Section - Most Important */}
-        {actionItems.length > 0 && (
-          <div className="action-items-card">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-8 h-8 bg-red-500 rounded-lg flex items-center justify-center">
-                <ExclamationTriangleIcon className="h-5 w-5 text-white" />
-              </div>
-              <div>
-                <h2 className="text-xl font-black text-gray-900 tracking-tight">
-                  ACTION REQUIRED
-                </h2>
-                <p className="text-sm text-gray-600 font-medium">
-                  {actionItems.length} order{actionItems.length > 1 ? 's' : ''} need{actionItems.length === 1 ? 's' : ''} your attention
-                </p>
-              </div>
-            </div>
-            
-            <div className="space-y-3">
-              {actionItems.map(order => (
-                <div key={order.id} className="action-item-row" onClick={() => setActiveTab('orders')}>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                      <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                      <div>
-                        <p className="font-bold text-gray-900">
-                          {order.vendor.name}
-                        </p>
-                        <p className="text-sm text-gray-600">
-                          Order #{order.id} • {order.status === 'pending' ? 'Pending 24+ hours' : 'Delivery overdue'}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className={`status-badge-neo status-${order.status}`}>
-                        {order.status.toUpperCase()}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+      {/* Tab Navigation - Modern Style */}
+      <div className="bg-white rounded-lg shadow p-1 flex space-x-1">
+        <button
+          onClick={() => setActiveTab('orders')}
+          className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-md font-medium text-sm transition-colors ${
+            activeTab === 'orders'
+              ? 'bg-blue-600 text-white shadow-sm'
+              : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+          }`}
+        >
+          <ClipboardDocumentListIcon className="h-5 w-5" />
+          <span>All Orders</span>
+          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+            activeTab === 'orders'
+              ? 'bg-blue-500 text-white'
+              : 'bg-gray-200 text-gray-600'
+          }`}>
+            {orders.length}
+          </span>
+        </button>
+        <button
+          onClick={() => setActiveTab('marketplace')}
+          className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-md font-medium text-sm transition-colors ${
+            activeTab === 'marketplace'
+              ? 'bg-blue-600 text-white shadow-sm'
+              : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+          }`}
+        >
+          <BuildingStorefrontIcon className="h-5 w-5" />
+          <span>Marketplace</span>
+        </button>
+      </div>
 
-        {/* Status Overview - Clean and Scannable */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="stats-card-neo">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-bold text-gray-600 uppercase tracking-wide">TOTAL</p>
-                <p className="text-3xl font-black text-gray-900">{stats.total}</p>
-              </div>
-              <ClipboardDocumentListIcon className="h-8 w-8 text-gray-400" />
-            </div>
-          </div>
-
-          <div className="stats-card-neo">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-bold text-amber-600 uppercase tracking-wide">PENDING</p>
-                <p className="text-3xl font-black text-amber-600">{stats.pending}</p>
-              </div>
-              <ClockIcon className="h-8 w-8 text-amber-400" />
-            </div>
-          </div>
-
-          <div className="stats-card-neo">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-bold text-blue-600 uppercase tracking-wide">CONFIRMED</p>
-                <p className="text-3xl font-black text-blue-600">{stats.confirmed}</p>
-              </div>
-              <CheckCircleIcon className="h-8 w-8 text-blue-400" />
-            </div>
-          </div>
-
-          <div className="stats-card-neo">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-bold text-green-600 uppercase tracking-wide">FULFILLED</p>
-                <p className="text-3xl font-black text-green-600">{stats.fulfilled}</p>
-              </div>
-              <TruckIcon className="h-8 w-8 text-green-400" />
-            </div>
-          </div>
-        </div>
-
-        {/* Tab Navigation - Neo-Brutalist Style */}
-        <div className="tab-navigation-neo">
-          <button
-            onClick={() => setActiveTab('orders')}
-            className={`tab-button-neo ${activeTab === 'orders' ? 'tab-active' : ''}`}
-          >
-            <ClipboardDocumentListIcon className="h-5 w-5" />
-            <span className="font-bold">ALL ORDERS</span>
-            <span className="tab-count">{orders.length}</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('marketplace')}
-            className={`tab-button-neo ${activeTab === 'marketplace' ? 'tab-active' : ''}`}
-          >
-            <BuildingStorefrontIcon className="h-5 w-5" />
-            <span className="font-bold">MARKETPLACE</span>
-          </button>
-        </div>
-
-        {/* Tab Content */}
-        {activeTab === 'orders' && (
-          <div className="content-section-neo">
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-black text-gray-900 tracking-tight">
-                ACTIVE ORDERS
+      {/* Tab Content */}
+      {activeTab === 'orders' && (
+        <div className="bg-white rounded-lg shadow">
+          <div className="px-6 py-4 border-b border-gray-200">
+            <div className="flex justify-between items-center">
+              <h3 className="text-lg font-semibold text-gray-900">
+                Active Orders
               </h3>
               <button
                 onClick={loadData}
-                className="btn-secondary-neo text-sm"
+                className="btn-secondary text-sm"
               >
                 Refresh
               </button>
             </div>
-            
+          </div>
+          <div className="p-6">
             {orders.length === 0 ? (
-              <div className="empty-state-neo">
+              <div className="text-center py-12">
                 <div className="text-6xl mb-4">📦</div>
-                <h3 className="text-xl font-black text-gray-900 mb-2">NO ORDERS YET</h3>
-                <p className="text-gray-600 mb-6 font-medium">Start by browsing suppliers or placing your first order</p>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No orders yet</h3>
+                <p className="text-gray-600 mb-6">Start by browsing suppliers or placing your first order</p>
                 <div className="flex flex-col sm:flex-row gap-3 justify-center">
                   <button
                     onClick={() => setActiveTab('marketplace')}
-                    className="btn-secondary-neo flex items-center justify-center"
+                    className="btn-secondary flex items-center justify-center"
                   >
                     <BuildingStorefrontIcon className="h-5 w-5 mr-2" />
                     Browse Marketplace
                   </button>
                   <button
                     onClick={() => setShowNewOrderForm(true)}
-                    className="btn-primary-neo flex items-center justify-center"
+                    className="btn-primary flex items-center justify-center"
                   >
                     <PlusIcon className="h-5 w-5 mr-2" />
                     Place First Order
@@ -309,23 +332,12 @@ export default function RestaurantDashboard({ user }) {
               <OrderList orders={orders} userRole="restaurant" onRefresh={loadData} />
             )}
           </div>
-        )}
+        </div>
+      )}
 
-        {activeTab === 'marketplace' && (
-          <VendorMarketplace onCreateOrder={handleCreateOrderFromMarketplace} />
-        )}
-      </div>
-
-      {/* Floating Action Button - Always Visible */}
-      <div className="fixed bottom-6 right-6 z-50">
-        <button
-          onClick={() => setShowNewOrderForm(true)}
-          className="floating-action-button"
-          title="Place New Order"
-        >
-          <PlusIcon className="h-6 w-6" />
-        </button>
-      </div>
+      {activeTab === 'marketplace' && (
+        <VendorMarketplace onCreateOrder={handleCreateOrderFromMarketplace} />
+      )}
     </div>
   );
 }
