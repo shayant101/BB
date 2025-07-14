@@ -27,7 +27,7 @@ async def get_current_user(authorization: str = Header(None), db: Session = Depe
     
     return user
 
-@router.get("/profile", response_model=UserProfile)
+@router.get("/me", response_model=UserProfile)
 async def get_current_user_profile(
     current_user: User = Depends(get_current_user)
 ):
@@ -42,7 +42,7 @@ async def get_current_user_profile(
         description=current_user.description
     )
 
-@router.put("/profile", response_model=UserProfile)
+@router.put("/me", response_model=UserProfile)
 async def update_current_user_profile(
     profile_update: UserProfileUpdate,
     current_user: User = Depends(get_current_user),

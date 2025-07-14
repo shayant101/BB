@@ -14,7 +14,7 @@ from ..admin_auth import log_user_event
 
 router = APIRouter()
 
-@router.post("/token", response_model=Token)
+@router.post("/login", response_model=Token)
 async def login_for_access_token(
     user_credentials: UserLogin,
     request: Request,
