@@ -33,33 +33,43 @@ export default function OrderList({ orders, userRole, onRefresh }) {
 
   return (
     <div className="space-y-6">
-      {/* Filter Tabs - Neo-Brutalist Style */}
-      <div className="filter-tabs-neo">
+      {/* Filter Tabs - Modern Style */}
+      <div className="bg-white rounded-xl shadow-sm p-1 flex space-x-1 border border-gray-200">
         {[
-          { key: 'all', label: 'ALL', count: orders.length },
-          { key: 'pending', label: 'PENDING', count: orders.filter(o => o.status === 'pending').length },
-          { key: 'confirmed', label: 'CONFIRMED', count: orders.filter(o => o.status === 'confirmed').length },
-          { key: 'fulfilled', label: 'FULFILLED', count: orders.filter(o => o.status === 'fulfilled').length },
+          { key: 'all', label: 'All', count: orders.length },
+          { key: 'pending', label: 'Pending', count: orders.filter(o => o.status === 'pending').length },
+          { key: 'confirmed', label: 'Confirmed', count: orders.filter(o => o.status === 'confirmed').length },
+          { key: 'fulfilled', label: 'Fulfilled', count: orders.filter(o => o.status === 'fulfilled').length },
         ].map(tab => (
           <button
             key={tab.key}
             onClick={() => setFilter(tab.key)}
-            className={`filter-tab-neo ${filter === tab.key ? 'filter-tab-active' : ''}`}
+            className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-medium text-sm transition-all duration-200 ${
+              filter === tab.key
+                ? 'bg-blue-600 text-white shadow-md transform hover:shadow-lg'
+                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50 hover:shadow-sm'
+            }`}
           >
-            <span className="font-black">{tab.label}</span>
-            <span className="tab-count">{tab.count}</span>
+            <span>{tab.label}</span>
+            <span className={`px-2 py-1 rounded-full text-xs font-medium shadow-sm ${
+              filter === tab.key
+                ? 'bg-blue-500 text-white'
+                : 'bg-gray-200 text-gray-600'
+            }`}>
+              {tab.count}
+            </span>
           </button>
         ))}
       </div>
 
       {/* Orders Grid */}
       {sortedOrders.length === 0 ? (
-        <div className="empty-state-neo">
+        <div className="text-center py-12 bg-gray-50 rounded-xl border-2 border-dashed border-gray-300">
           <div className="text-6xl mb-4">📭</div>
-          <h3 className="text-xl font-black text-gray-900 mb-2">
-            NO {filter.toUpperCase()} ORDERS
+          <h3 className="text-xl font-semibold text-gray-900 mb-2">
+            No {filter === 'all' ? '' : filter} orders
           </h3>
-          <p className="text-gray-600 font-medium">
+          <p className="text-gray-600">
             {filter === 'all'
               ? 'No orders found'
               : `No ${filter} orders found`
@@ -67,7 +77,7 @@ export default function OrderList({ orders, userRole, onRefresh }) {
           </p>
         </div>
       ) : (
-        <div className="orders-grid-neo">
+        <div className="space-y-4">
           {sortedOrders.map(order => (
             <OrderCard
               key={order.id}

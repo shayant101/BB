@@ -196,24 +196,29 @@ export default function AdminDashboard() {
     <div className="space-y-6">
       {/* AI Insights Panel */}
       {aiInsights.length > 0 && (
-        <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg p-6 border border-purple-200">
+        <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg p-6 border border-purple-200 slide-in">
           <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
             🤖 AI Platform Insights
+            {aiInsights.some(insight => insight.priority === 'high') && <div className="w-2 h-2 bg-red-500 rounded-full blink-dot ml-2"></div>}
           </h3>
           <div className="grid gap-4 md:grid-cols-2">
             {aiInsights.slice(0, 4).map((insight, index) => (
               <div
                 key={index}
-                className={`p-4 rounded-lg border-l-4 ${
+                className={`p-4 rounded-lg border-l-4 hover-lift slide-in ${
                   insight.type === 'warning' ? 'bg-yellow-50 border-yellow-400' :
                   insight.type === 'success' ? 'bg-green-50 border-green-400' :
                   'bg-blue-50 border-blue-400'
                 }`}
+                style={{animationDelay: `${index * 0.1}s`}}
               >
                 <div className="flex items-start">
                   <span className="text-2xl mr-3">{insight.icon}</span>
                   <div>
-                    <h4 className="font-medium text-gray-900">{insight.title}</h4>
+                    <h4 className="font-medium text-gray-900 flex items-center gap-2">
+                      {insight.title}
+                      {insight.priority === 'high' && <div className="w-2 h-2 bg-red-500 rounded-full blink-dot"></div>}
+                    </h4>
                     <p className="text-sm text-gray-600 mt-1">{insight.message}</p>
                   </div>
                 </div>
@@ -225,10 +230,10 @@ export default function AdminDashboard() {
 
       {/* Key Metrics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-white rounded-lg shadow p-6 border-l-4 border-blue-500">
+        <div className="bg-white rounded-xl shadow-sm p-6 border-l-4 border-blue-500 hover-lift slide-in">
           <div className="flex items-center">
             <div className="flex-shrink-0">
-              <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+              <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center shadow-sm">
                 <span className="text-blue-600 font-bold">👥</span>
               </div>
             </div>
@@ -239,10 +244,10 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-6 border-l-4 border-green-500">
+        <div className="bg-white rounded-xl shadow-sm p-6 border-l-4 border-green-500 hover-lift slide-in glow-green" style={{animationDelay: '0.1s'}}>
           <div className="flex items-center">
             <div className="flex-shrink-0">
-              <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+              <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center shadow-sm">
                 <span className="text-green-600 font-bold">📦</span>
               </div>
             </div>
@@ -253,29 +258,35 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-6 border-l-4 border-yellow-500">
+        <div className={`bg-white rounded-xl shadow-sm p-6 border-l-4 border-yellow-500 hover-lift slide-in`} style={{animationDelay: '0.2s'}}>
           <div className="flex items-center">
             <div className="flex-shrink-0">
-              <div className="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
+              <div className={`w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center shadow-sm`}>
                 <span className="text-yellow-600 font-bold">⏳</span>
               </div>
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500">Pending Approvals</p>
+              <p className="text-sm font-medium text-gray-500 flex items-center gap-2">
+                Pending Approvals
+                {(stats?.pending_vendor_approvals || 0) > 0 && <div className="w-2 h-2 bg-red-500 rounded-full blink-dot"></div>}
+              </p>
               <p className="text-2xl font-bold text-gray-900">{stats?.pending_vendor_approvals || 0}</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-6 border-l-4 border-purple-500">
+        <div className={`bg-white rounded-xl shadow-sm p-6 border-l-4 border-purple-500 hover-lift slide-in`} style={{animationDelay: '0.3s'}}>
           <div className="flex items-center">
             <div className="flex-shrink-0">
-              <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+              <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center shadow-sm">
                 <span className="text-purple-600 font-bold">🆕</span>
               </div>
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500">New Users (24h)</p>
+              <p className="text-sm font-medium text-gray-500 flex items-center gap-2">
+                New Users (24h)
+                {(stats?.recent_signups_24h || 0) > 0 && <div className="w-2 h-2 bg-green-500 rounded-full blink-dot"></div>}
+              </p>
               <p className="text-2xl font-bold text-gray-900">{stats?.recent_signups_24h || 0}</p>
             </div>
           </div>
@@ -284,14 +295,14 @@ export default function AdminDashboard() {
 
       {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-white rounded-xl shadow-sm p-6 hover-lift slide-in" style={{animationDelay: '0.4s'}}>
           <h3 className="text-lg font-semibold text-gray-900 mb-4">User Distribution</h3>
           <div className="h-64">
             <Doughnut data={userDistributionData} options={{ responsive: true, maintainAspectRatio: false }} />
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-white rounded-xl shadow-sm p-6 hover-lift slide-in" style={{animationDelay: '0.5s'}}>
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Platform Metrics</h3>
           <div className="h-64">
             <Bar data={platformMetricsData} options={{ ...chartOptions, maintainAspectRatio: false }} />
@@ -302,7 +313,7 @@ export default function AdminDashboard() {
       {/* Action Queues */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Pending Vendors */}
-        <div className="bg-white rounded-lg shadow">
+        <div className={`bg-white rounded-xl shadow-sm slide-in`} style={{animationDelay: '0.6s'}}>
           <div className="px-6 py-4 border-b border-gray-200">
             <h3 className="text-lg font-semibold text-gray-900 flex items-center">
               <span className="mr-2">👥</span>
@@ -317,18 +328,21 @@ export default function AdminDashboard() {
           <div className="p-6">
             {actionQueues?.pending_vendors?.length > 0 ? (
               <div className="space-y-4">
-                {actionQueues.pending_vendors.map((vendor) => (
-                  <div key={vendor.id} className="flex items-center justify-between p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                {actionQueues.pending_vendors.map((vendor, index) => (
+                  <div key={vendor.id} className="flex items-center justify-between p-4 bg-yellow-50 rounded-lg border border-yellow-200 hover-lift slide-in" style={{animationDelay: `${0.7 + index * 0.1}s`}}>
                     <div>
-                      <h4 className="font-medium text-gray-900">{vendor.name}</h4>
+                      <h4 className="font-medium text-gray-900 flex items-center gap-2">
+                        {vendor.name}
+                        <div className="w-2 h-2 bg-yellow-500 rounded-full blink-dot"></div>
+                      </h4>
                       <p className="text-sm text-gray-600">{vendor.email}</p>
                       <p className="text-xs text-gray-500">Pending for {vendor.days_pending} days</p>
                     </div>
                     <div className="flex space-x-2">
-                      <button className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm">
+                      <button className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded-lg text-sm transition-colors">
                         Approve
                       </button>
-                      <button className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm">
+                      <button className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-lg text-sm transition-colors">
                         Reject
                       </button>
                     </div>
@@ -336,13 +350,16 @@ export default function AdminDashboard() {
                 ))}
               </div>
             ) : (
-              <p className="text-gray-500 text-center py-8">No pending vendor approvals</p>
+              <div className="text-center py-8">
+                <span className="text-4xl">✅</span>
+                <p className="text-gray-500 mt-2">No pending vendor approvals</p>
+              </div>
             )}
           </div>
         </div>
 
         {/* Stuck Orders */}
-        <div className="bg-white rounded-lg shadow">
+        <div className={`bg-white rounded-xl shadow-sm slide-in`} style={{animationDelay: '0.7s'}}>
           <div className="px-6 py-4 border-b border-gray-200">
             <h3 className="text-lg font-semibold text-gray-900 flex items-center">
               <span className="mr-2">⚠️</span>
@@ -357,16 +374,19 @@ export default function AdminDashboard() {
           <div className="p-6">
             {actionQueues?.stuck_orders?.length > 0 ? (
               <div className="space-y-4">
-                {actionQueues.stuck_orders.map((order) => (
-                  <div key={order.id} className="p-4 bg-red-50 rounded-lg border border-red-200">
+                {actionQueues.stuck_orders.map((order, index) => (
+                  <div key={order.id} className="p-4 bg-red-50 rounded-lg border border-red-200 hover-lift slide-in" style={{animationDelay: `${0.8 + index * 0.1}s`}}>
                     <div className="flex justify-between items-start">
                       <div>
-                        <h4 className="font-medium text-gray-900">Order #{order.id}</h4>
+                        <h4 className="font-medium text-gray-900 flex items-center gap-2">
+                          Order #{order.id}
+                          <div className="w-2 h-2 bg-red-500 rounded-full blink-dot"></div>
+                        </h4>
                         <p className="text-sm text-gray-600">{order.restaurant_name} → {order.vendor_name}</p>
                         <p className="text-xs text-gray-500">Stuck for {order.hours_stuck} hours</p>
                         <p className="text-sm text-gray-700 mt-1">{order.items_text}</p>
                       </div>
-                      <button className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm">
+                      <button className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-lg text-sm transition-colors">
                         Investigate
                       </button>
                     </div>
@@ -384,28 +404,36 @@ export default function AdminDashboard() {
       </div>
 
       {/* Real-time Status */}
-      <div className="bg-white rounded-lg shadow p-6">
+      <div className="bg-white rounded-xl shadow-sm p-6 slide-in" style={{animationDelay: '0.8s'}}>
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-gray-900">System Status</h3>
+          <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+            System Status
+            <div className="w-2 h-2 bg-green-500 rounded-full blink-dot"></div>
+          </h3>
           <div className="flex items-center space-x-2">
             <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
             <span className="text-sm text-gray-600">Live - Updates every 30s</span>
           </div>
         </div>
         <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="text-center">
-            <div className="text-2xl font-bold text-green-600">{stats?.active_impersonation_sessions || 0}</div>
-            <div className="text-sm text-gray-500">Active Sessions</div>
+          <div className={`text-center p-3 rounded-lg hover-lift transition-colors ${(stats?.active_impersonation_sessions || 0) > 0 ? 'bg-yellow-50' : 'bg-gray-50'}`}>
+            <div className="text-2xl font-bold text-green-600">
+              {stats?.active_impersonation_sessions || 0}
+            </div>
+            <div className="text-sm text-gray-500 flex items-center justify-center gap-1">
+              Active Sessions
+              {(stats?.active_impersonation_sessions || 0) > 0 && <div className="w-2 h-2 bg-yellow-500 rounded-full blink-dot"></div>}
+            </div>
           </div>
-          <div className="text-center">
+          <div className="text-center p-3 rounded-lg bg-blue-50 hover-lift transition-colors">
             <div className="text-2xl font-bold text-blue-600">{stats?.total_restaurants || 0}</div>
             <div className="text-sm text-gray-500">Restaurants</div>
           </div>
-          <div className="text-center">
+          <div className="text-center p-3 rounded-lg bg-purple-50 hover-lift transition-colors">
             <div className="text-2xl font-bold text-purple-600">{stats?.total_vendors || 0}</div>
             <div className="text-sm text-gray-500">Vendors</div>
           </div>
-          <div className="text-center">
+          <div className="text-center p-3 rounded-lg bg-orange-50 hover-lift transition-colors">
             <div className="text-2xl font-bold text-orange-600">
               {stats ? Math.round((stats.total_orders / stats.total_users) * 10) / 10 : 0}
             </div>

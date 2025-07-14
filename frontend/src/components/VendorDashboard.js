@@ -78,12 +78,12 @@ export default function VendorDashboard({ user }) {
         </div>
       </div>
 
-      {/* Stats Cards - Modern Style matching Admin Dashboard */}
+      {/* Stats Cards - Interactive Style */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-white rounded-lg shadow p-6 border-l-4 border-gray-500">
+        <div className="bg-white rounded-xl shadow-sm p-6 border-l-4 border-gray-500 hover-lift slide-in">
           <div className="flex items-center">
             <div className="flex-shrink-0">
-              <div className="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center">
+              <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center shadow-sm">
                 <span className="text-gray-600 font-bold">📋</span>
               </div>
             </div>
@@ -94,24 +94,27 @@ export default function VendorDashboard({ user }) {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-6 border-l-4 border-yellow-500">
+        <div className={`bg-white rounded-xl shadow-sm p-6 border-l-4 border-yellow-500 hover-lift slide-in`} style={{animationDelay: '0.1s'}}>
           <div className="flex items-center">
             <div className="flex-shrink-0">
-              <div className="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
+              <div className={`w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center shadow-sm`}>
                 <span className="text-yellow-600 font-bold">⏳</span>
               </div>
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500">Pending</p>
+              <p className="text-sm font-medium text-gray-500 flex items-center gap-2">
+                Pending
+                {stats.pending > 0 && <div className="w-2 h-2 bg-yellow-500 rounded-full blink-dot"></div>}
+              </p>
               <p className="text-2xl font-bold text-gray-900">{stats.pending}</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-6 border-l-4 border-blue-500">
+        <div className={`bg-white rounded-xl shadow-sm p-6 border-l-4 border-blue-500 hover-lift slide-in`} style={{animationDelay: '0.2s'}}>
           <div className="flex items-center">
             <div className="flex-shrink-0">
-              <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+              <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center shadow-sm">
                 <span className="text-blue-600 font-bold">✅</span>
               </div>
             </div>
@@ -122,10 +125,10 @@ export default function VendorDashboard({ user }) {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-6 border-l-4 border-green-500">
+        <div className={`bg-white rounded-xl shadow-sm p-6 border-l-4 border-green-500 hover-lift slide-in`} style={{animationDelay: '0.3s'}}>
           <div className="flex items-center">
             <div className="flex-shrink-0">
-              <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+              <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center shadow-sm">
                 <span className="text-green-600 font-bold">🚚</span>
               </div>
             </div>
@@ -137,14 +140,17 @@ export default function VendorDashboard({ user }) {
         </div>
       </div>
 
-      {/* Orders List - Modern Card Style */}
-      <div className="bg-white rounded-lg shadow">
+      {/* Orders List - Interactive Style */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 slide-in" style={{animationDelay: '0.4s'}}>
         <div className="px-6 py-4 border-b border-gray-200">
           <div className="flex justify-between items-center">
-            <h3 className="text-lg font-semibold text-gray-900">Incoming Orders</h3>
+            <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+              Incoming Orders
+              {orders.length > 0 && <div className="w-2 h-2 bg-blue-500 rounded-full blink-dot"></div>}
+            </h3>
             <button
               onClick={loadData}
-              className="btn-secondary text-sm"
+              className="btn-secondary text-sm transition-colors"
             >
               Refresh
             </button>
