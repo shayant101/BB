@@ -527,3 +527,538 @@ html {
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+/* ===== NEO-BRUTALIST BISTROBOARD STYLES ===== */
+
+/* Action Items Section - Critical Priority */
+.action-items-card {
+  background: #FEF2F2;
+  border: 3px solid #DC2626;
+  border-radius: 0;
+  padding: 24px;
+  box-shadow: 8px 8px 0px #DC2626;
+  margin-bottom: 32px;
+}
+
+.action-item-row {
+  background: white;
+  border: 2px solid #DC2626;
+  padding: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-radius: 0;
+}
+
+.action-item-row:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 4px 4px 0px #DC2626;
+}
+
+/* Neo-Brutalist Buttons */
+.btn-primary-neo {
+  background: #2563EB;
+  color: white;
+  font-weight: 800;
+  font-size: 14px;
+  padding: 12px 20px;
+  border: 3px solid #1D4ED8;
+  border-radius: 0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 4px 4px 0px #1D4ED8;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
+.btn-primary-neo:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0px #1D4ED8;
+}
+
+.btn-primary-neo:active {
+  transform: translate(0, 0);
+  box-shadow: 2px 2px 0px #1D4ED8;
+}
+
+.btn-secondary-neo {
+  background: white;
+  color: #374151;
+  font-weight: 700;
+  font-size: 14px;
+  padding: 12px 20px;
+  border: 3px solid #374151;
+  border-radius: 0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 4px 4px 0px #374151;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
+.btn-secondary-neo:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0px #374151;
+  background: #F9FAFB;
+}
+
+.btn-action-neo {
+  background: #10B981;
+  color: white;
+  font-weight: 700;
+  font-size: 12px;
+  padding: 8px 16px;
+  border: 2px solid #059669;
+  border-radius: 0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 2px 2px 0px #059669;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.btn-action-neo:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0px #059669;
+}
+
+/* Stats Cards - Neo-Brutalist */
+.stats-card-neo {
+  background: white;
+  border: 3px solid #000;
+  border-radius: 0;
+  padding: 24px;
+  transition: all 0.2s ease;
+  box-shadow: 6px 6px 0px #000;
+}
+
+.stats-card-neo:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 8px 8px 0px #000;
+}
+
+/* Tab Navigation - Neo-Brutalist */
+.tab-navigation-neo {
+  display: flex;
+  gap: 4px;
+  background: #F3F4F6;
+  padding: 4px;
+  border: 3px solid #000;
+  border-radius: 0;
+}
+
+.tab-button-neo {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 16px 24px;
+  background: white;
+  border: 2px solid #6B7280;
+  border-radius: 0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.tab-button-neo:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 2px 2px 0px #6B7280;
+}
+
+.tab-button-neo.tab-active {
+  background: #2563EB;
+  color: white;
+  border-color: #1D4ED8;
+  box-shadow: 3px 3px 0px #1D4ED8;
+}
+
+.tab-count {
+  background: rgba(0, 0, 0, 0.1);
+  padding: 4px 8px;
+  border-radius: 0;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.tab-active .tab-count {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+/* Content Sections */
+.content-section-neo {
+  background: white;
+  border: 3px solid #000;
+  border-radius: 0;
+  padding: 32px;
+  box-shadow: 8px 8px 0px #000;
+}
+
+/* Empty State */
+.empty-state-neo {
+  text-align: center;
+  padding: 64px 32px;
+  background: #F9FAFB;
+  border: 3px dashed #9CA3AF;
+  border-radius: 0;
+}
+
+/* Filter Tabs */
+.filter-tabs-neo {
+  display: flex;
+  gap: 2px;
+  background: #E5E7EB;
+  padding: 4px;
+  border: 3px solid #000;
+  border-radius: 0;
+}
+
+.filter-tab-neo {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: white;
+  border: 2px solid #9CA3AF;
+  border-radius: 0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.filter-tab-neo:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 2px 2px 0px #9CA3AF;
+}
+
+.filter-tab-neo.filter-tab-active {
+  background: #1F2937;
+  color: white;
+  border-color: #000;
+  box-shadow: 3px 3px 0px #000;
+}
+
+/* Orders Grid */
+.orders-grid-neo {
+  display: grid;
+  gap: 16px;
+}
+
+/* Order Card - Neo-Brutalist */
+.order-card-neo {
+  background: white;
+  border: 3px solid #000;
+  border-radius: 0;
+  padding: 24px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  box-shadow: 4px 4px 0px #000;
+}
+
+.order-card-neo:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0px #000;
+}
+
+.order-card-neo.order-urgent {
+  border-color: #DC2626;
+  box-shadow: 4px 4px 0px #DC2626;
+  background: #FEF2F2;
+}
+
+.order-card-neo.order-urgent:hover {
+  box-shadow: 6px 6px 0px #DC2626;
+}
+
+/* Urgency Indicator */
+.urgency-indicator {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  background: #DC2626;
+  color: white;
+  padding: 4px 8px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+  border: 2px solid #991B1B;
+}
+
+/* Order Grid Layout */
+.order-grid {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 16px;
+  align-items: start;
+  margin-bottom: 16px;
+}
+
+.order-primary {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.vendor-name {
+  font-size: 20px;
+  font-weight: 900;
+  color: #111827;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  line-height: 1.2;
+}
+
+.order-meta {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.order-id {
+  font-size: 14px;
+  font-weight: 700;
+  color: #6B7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.order-date {
+  font-size: 14px;
+  font-weight: 500;
+  color: #9CA3AF;
+}
+
+.delivery-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.order-status-section {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+/* Status Badges - Neo-Brutalist */
+.status-badge-neo {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border: 2px solid;
+  border-radius: 0;
+  box-shadow: 2px 2px 0px;
+}
+
+.status-badge-neo.status-pending {
+  background: #FEF3C7;
+  color: #92400E;
+  border-color: #D97706;
+  box-shadow: 2px 2px 0px #D97706;
+}
+
+.status-badge-neo.status-confirmed {
+  background: #DBEAFE;
+  color: #1E40AF;
+  border-color: #2563EB;
+  box-shadow: 2px 2px 0px #2563EB;
+}
+
+.status-badge-neo.status-fulfilled {
+  background: #D1FAE5;
+  color: #065F46;
+  border-color: #059669;
+  box-shadow: 2px 2px 0px #059669;
+}
+
+/* Order Items Preview */
+.order-items-preview {
+  background: #F9FAFB;
+  border: 2px solid #E5E7EB;
+  border-radius: 0;
+  padding: 12px;
+  margin-bottom: 16px;
+}
+
+.items-text {
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+  line-height: 1.4;
+  margin: 0;
+}
+
+/* Contact Actions */
+.contact-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 16px;
+  border-top: 2px solid #E5E7EB;
+  gap: 16px;
+}
+
+.contact-button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: white;
+  border: 2px solid #6B7280;
+  border-radius: 0;
+  font-size: 12px;
+  font-weight: 700;
+  color: #374151;
+  text-decoration: none;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  transition: all 0.2s ease;
+  box-shadow: 2px 2px 0px #6B7280;
+}
+
+.contact-button:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0px #6B7280;
+  background: #F9FAFB;
+}
+
+.location-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #6B7280;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+/* Floating Action Button */
+.floating-action-button {
+  width: 64px;
+  height: 64px;
+  background: #DC2626;
+  color: white;
+  border: 4px solid #991B1B;
+  border-radius: 0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 6px 6px 0px #991B1B;
+  font-weight: 900;
+}
+
+.floating-action-button:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 8px 8px 0px #991B1B;
+}
+
+.floating-action-button:active {
+  transform: translate(0, 0);
+  box-shadow: 3px 3px 0px #991B1B;
+}
+
+/* Responsive Design for Neo-Brutalist */
+@media (max-width: 768px) {
+  .order-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  
+  .order-status-section {
+    align-items: flex-start;
+    flex-direction: row;
+    justify-content: space-between;
+  }
+  
+  .vendor-name {
+    font-size: 18px;
+  }
+  
+  .contact-actions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  
+  .location-info {
+    justify-content: center;
+  }
+  
+  .stats-card-neo {
+    padding: 16px;
+  }
+  
+  .content-section-neo {
+    padding: 20px;
+  }
+  
+  .floating-action-button {
+    width: 56px;
+    height: 56px;
+  }
+}
+
+/* Typography Enhancements */
+.font-black {
+  font-weight: 900;
+}
+
+.tracking-tight {
+  letter-spacing: -0.025em;
+}
+
+.tracking-wide {
+  letter-spacing: 0.025em;
+}
+
+/* Additional Neo-Brutalist Elements */
+.neo-border {
+  border: 3px solid #000;
+  border-radius: 0;
+}
+
+.neo-shadow {
+  box-shadow: 4px 4px 0px #000;
+}
+
+.neo-shadow-hover:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0px #000;
+}
