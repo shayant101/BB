@@ -25,11 +25,25 @@ const GoogleSignIn = ({ onSuccess, onError, role = 'restaurant' }) => {
 
     const initializeGoogle = async () => {
       try {
+        console.log('🔍 [DEBUG] Initializing Google Sign-In...');
+        
         // Get Google OAuth configuration from backend
         const config = await authAPI.getGoogleConfig();
+        console.log('🔍 [DEBUG] Google config received:', {
+          hasClientId: !!config.client_id,
+          clientIdLength: config.client_id?.length,
+          redirectUri: config.redirect_uri
+        });
+        
         setGoogleConfig(config);
 
+        // Validate client ID
+        if (!config.client_id || config.client_id.includes('your_google_client_id')) {
+          throw new Error('Google OAuth client ID not properly configured');
+        }
+
         // Initialize Google Identity Services
+        console.log('🔍 [DEBUG] Initializing Google Identity Services...');
         window.google.accounts.id.initialize({
           client_id: config.client_id,
           callback: handleGoogleResponse,
@@ -39,6 +53,7 @@ const GoogleSignIn = ({ onSuccess, onError, role = 'restaurant' }) => {
 
         // Try to render the Google Sign-In button with custom styling
         try {
+          console.log('🔍 [DEBUG] Rendering Google Sign-In button...');
           window.google.accounts.id.renderButton(
             document.getElementById('google-signin-button'),
             {
@@ -59,8 +74,10 @@ const GoogleSignIn = ({ onSuccess, onError, role = 'restaurant' }) => {
               googleButton.style.height = '48px';
             }
           }, 100);
+          
+          console.log('🔍 [DEBUG] Google Sign-In button rendered successfully');
         } catch (renderError) {
-          console.warn('Google button render failed, using fallback:', renderError);
+          console.warn('⚠️ [DEBUG] Google button render failed:', renderError);
           // Show fallback button if Google button fails
           const fallbackButton = document.getElementById('fallback-google-button');
           if (fallbackButton) {
@@ -68,8 +85,20 @@ const GoogleSignIn = ({ onSuccess, onError, role = 'restaurant' }) => {
           }
         }
       } catch (error) {
-        console.error('Failed to initialize Google Sign-In:', error);
-        onError?.('Failed to initialize Google Sign-In');
+        console.error('🚨 [DEBUG] Failed to initialize Google Sign-In:', error);
+        
+        // Show fallback button for configuration errors
+        const fallbackButton = document.getElementById('fallback-google-button');
+        if (fallbackButton) {
+          fallbackButton.style.display = 'flex';
+        }
+        
+        // Show user-friendly error message
+        const errorMessage = error.message.includes('client ID')
+          ? 'Google Sign-In is not configured properly. Please contact support.'
+          : 'Failed to initialize Google Sign-In. Please try again or contact support.';
+        
+        onError?.(errorMessage);
       }
     };
 
@@ -77,14 +106,42 @@ const GoogleSignIn = ({ onSuccess, onError, role = 'restaurant' }) => {
   }, []);
 
   const handleGoogleResponse = async (response) => {
+    console.log('🔍 [DEBUG] handleGoogleResponse called with:', {
+      hasCredential: !!response?.credential,
+      credentialLength: response?.credential?.length,
+      role: role,
+      timestamp: new Date().toISOString()
+    });
+    
     setIsLoading(true);
     
     try {
+      // Validate Google response
+      if (!response || !response.credential) {
+        throw new Error('Invalid Google response: missing credential');
+      }
+      
+      console.log('🔍 [DEBUG] Calling authAPI.googleLogin with:', {
+        credentialPresent: !!response.credential,
+        role: role
+      });
+      
       // Send the credential to our backend
       const authResponse = await authAPI.googleLogin(response.credential, role);
       
+      console.log('🔍 [DEBUG] Backend response received:', {
+        hasResponse: !!authResponse,
+        needsRoleSelection: authResponse?.needs_role_selection,
+        hasAccessToken: !!authResponse?.access_token,
+        hasUserId: !!authResponse?.user_id,
+        hasRole: !!authResponse?.role,
+        hasName: !!authResponse?.name,
+        responseKeys: authResponse ? Object.keys(authResponse) : []
+      });
+      
       // Check if user needs role selection
       if (authResponse.needs_role_selection) {
+        console.log('🔍 [DEBUG] User needs role selection, calling onSuccess with role selection data');
         // Pass the response to parent for role selection handling
         onSuccess?.({
           ...authResponse,
@@ -95,19 +152,47 @@ const GoogleSignIn = ({ onSuccess, onError, role = 'restaurant' }) => {
       
       // Normal login flow - store token and user info
       if (authResponse.access_token) {
+        console.log('🔍 [DEBUG] Storing auth token and user info');
         setAuthToken(authResponse.access_token);
         setUser({
           id: authResponse.user_id,
           role: authResponse.role,
           name: authResponse.name
         });
+      } else {
+        console.warn('⚠️ [DEBUG] No access_token in response, skipping token storage');
       }
 
+      console.log('🔍 [DEBUG] Calling onSuccess with authResponse');
       onSuccess?.(authResponse);
     } catch (error) {
-      console.error('Google login failed:', error);
-      onError?.(error.response?.data?.detail || 'Google login failed');
+      console.error('🚨 [DEBUG] Google login error details:', {
+        errorType: error.constructor.name,
+        errorMessage: error.message,
+        hasResponse: !!error.response,
+        responseStatus: error.response?.status,
+        responseData: error.response?.data,
+        responseDataDetail: error.response?.data?.detail,
+        fullError: error,
+        stack: error.stack
+      });
+      
+      // Safe error message extraction
+      let errorMessage = 'Google login failed';
+      try {
+        if (error.response?.data?.detail) {
+          errorMessage = error.response.data.detail;
+        } else if (error.message) {
+          errorMessage = error.message;
+        }
+      } catch (msgError) {
+        console.error('🚨 [DEBUG] Error extracting error message:', msgError);
+      }
+      
+      console.log('🔍 [DEBUG] Calling onError with message:', errorMessage);
+      onError?.(errorMessage);
     } finally {
+      console.log('🔍 [DEBUG] Setting isLoading to false');
       setIsLoading(false);
     }
   };

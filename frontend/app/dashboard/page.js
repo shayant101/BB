@@ -12,16 +12,26 @@ export default function Dashboard() {
   const router = useRouter();
 
   useEffect(() => {
-    const token = getAuthToken();
-    const userData = getUser();
+    const initializeAuth = async () => {
+      const token = getAuthToken();
+      const userData = getUser();
 
-    if (!token || !userData) {
-      router.push('/');
-      return;
-    }
+      if (!token || !userData) {
+        router.push('/');
+        return;
+      }
 
-    setUser(userData);
-    setLoading(false);
+      // Ensure token is set in axios instance before proceeding
+      if (token) {
+        const api = (await import('../../src/lib/api')).default;
+        api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      }
+
+      setUser(userData);
+      setLoading(false);
+    };
+
+    initializeAuth();
   }, [router]);
 
   const handleLogout = () => {

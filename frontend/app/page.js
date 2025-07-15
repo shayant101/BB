@@ -58,7 +58,7 @@ export default function LoginPage() {
     }
   };
 
-  const handleGoogleSuccess = (response) => {
+  const handleGoogleSuccess = async (response) => {
     // Check if user needs role selection
     if (response.needs_role_selection) {
       setGoogleCredential(response.credential);
@@ -67,7 +67,17 @@ export default function LoginPage() {
       return;
     }
     
-    // Normal login flow - redirect based on role
+    // Normal login flow - ensure token is set before redirect
+    if (response.access_token) {
+      // Import api module and ensure token is set
+      const api = (await import('../src/lib/api')).default;
+      api.defaults.headers.common['Authorization'] = `Bearer ${response.access_token}`;
+      
+      // Small delay to ensure token is properly set
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+    
+    // Redirect based on role
     if (response.role === 'admin') {
       router.push('/admin');
     } else {
@@ -94,6 +104,15 @@ export default function LoginPage() {
         role: response.role,
         name: response.name
       });
+
+      // Ensure token is set in axios instance before redirect
+      if (response.access_token) {
+        const api = (await import('../src/lib/api')).default;
+        api.defaults.headers.common['Authorization'] = `Bearer ${response.access_token}`;
+        
+        // Small delay to ensure token is properly set
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
 
       // Close modal and redirect
       setShowRoleModal(false);

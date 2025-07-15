@@ -23,6 +23,15 @@ class GoogleConfigResponse(BaseModel):
     client_id: str
     redirect_uri: str
 
+class GoogleRoleSelectionResponse(BaseModel):
+    access_token: str = ""
+    token_type: str = "bearer"
+    user_id: int = 0
+    role: str = ""
+    name: str
+    needs_role_selection: bool = True
+    google_token: str
+
 @router.post("/login", response_model=Token)
 async def login_for_access_token(
     user_credentials: UserLogin,
@@ -107,7 +116,7 @@ async def login_for_access_token(
         "name": user.name
     }
 
-@router.post("/google", response_model=Token)
+@router.post("/google")
 async def google_login(
     google_request: GoogleLoginRequest,
     request: Request
@@ -129,7 +138,6 @@ async def google_login(
         needs_role_selection = False
         if existing_user and (not existing_user.role or existing_user.role == 'restaurant'):
             # Check if this is a newly created user (created in last 5 minutes) or has default role
-            from datetime import datetime, timedelta
             if (existing_user.created_at and
                 datetime.utcnow() - existing_user.created_at < timedelta(minutes=5)) or \
                existing_user.role == 'restaurant':
@@ -142,10 +150,10 @@ async def google_login(
         # If user needs role selection, return special response
         if needs_role_selection and google_request.role == 'restaurant':
             return {
-                "access_token": None,
+                "access_token": "",
                 "token_type": "bearer",
-                "user_id": None,
-                "role": None,
+                "user_id": 0,
+                "role": "",
                 "name": google_user_info['name'],
                 "needs_role_selection": True,
                 "google_token": google_request.token

@@ -36,11 +36,33 @@ export default function RestaurantDashboard({ user }) {
   const [actionItems, setActionItems] = useState([]);
 
   useEffect(() => {
-    loadData();
+    // Ensure token is properly set before loading data
+    const initializeAndLoadData = async () => {
+      const token = localStorage.getItem('token');
+      if (token) {
+        // Import api module and ensure token is set in axios instance
+        const api = (await import('../lib/api')).default;
+        api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        
+        // Small delay to ensure token is properly set
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+      
+      loadData();
+    };
+    
+    initializeAndLoadData();
   }, []);
 
   const loadData = async () => {
     try {
+      // Double-check token is set before making API calls
+      const token = localStorage.getItem('token');
+      if (token) {
+        const api = (await import('../lib/api')).default;
+        api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      }
+      
       const [ordersData, vendorsData] = await Promise.all([
         ordersAPI.getOrders(),
         profilesAPI.getVendors()
