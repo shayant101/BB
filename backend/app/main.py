@@ -27,13 +27,14 @@ app = FastAPI(
     version="2.0.0"
 )
 
-# Configure CORS
+# Configure comprehensive CORS middleware
+# Fully permissive configuration for development and testing
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allow all origins for demo
+    allow_origins=["*"],  # Allow all origins
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["*"],  # Allow all methods (GET, POST, PUT, DELETE, etc.)
+    allow_headers=["*"],  # Allow all headers
 )
 
 # Include routers
