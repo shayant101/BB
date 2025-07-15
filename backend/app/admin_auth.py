@@ -172,15 +172,38 @@ async def log_user_event(
     details: Optional[Dict[str, Any]] = None,
     request: Optional[Request] = None
 ):
-    """Log user event"""
-    event_log = UserEventLog(
-        user_id=user_id,
-        event_type=event_type,
-        details=details or {},
-        ip_address=request.client.host if request else None,
-        user_agent=request.headers.get("user-agent") if request else None
-    )
-    await event_log.save()
+    """Log user event with retry logic for revision conflicts"""
+    max_retries = 3
+    
+    for attempt in range(max_retries):
+        try:
+            # Create a fresh event log document for each attempt
+            event_log = UserEventLog(
+                user_id=user_id,
+                event_type=event_type,
+                details=details or {},
+                ip_address=request.client.host if request else None,
+                user_agent=request.headers.get("user-agent") if request else None
+            )
+            
+            # Save the event log
+            await event_log.save()
+            print(f"✅ Event log saved successfully: user_id={user_id}, event_type={event_type}")
+            return  # Success, exit the function
+            
+        except Exception as e:
+            error_name = type(e).__name__
+            print(f"⚠️  Attempt {attempt + 1}/{max_retries} failed to save event log: {error_name}: {e}")
+            
+            # If this is the last attempt, log the failure but don't crash the login
+            if attempt == max_retries - 1:
+                print(f"❌ Failed to save event log after {max_retries} attempts. Login will continue.")
+                return
+            
+            # For revision conflicts, wait a bit before retrying
+            if "RevisionIdWasChanged" in error_name:
+                import asyncio
+                await asyncio.sleep(0.1 * (attempt + 1))  # Exponential backoff
 
 def get_token_payload(
     credentials: HTTPAuthorizationCredentials = Depends(security)

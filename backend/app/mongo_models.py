@@ -135,7 +135,7 @@ class AdminAuditLog(Document):
 
 class UserEventLog(Document):
     """User event log document"""
-    event_id: Optional[Indexed(int, unique=True)] = None  # Original SQLite ID, optional for new logs
+    event_id: Optional[int] = None  # Original SQLite ID, optional for new logs (removed unique constraint)
     user_id: Indexed(int)
     event_type: str  # "login", "logout", "password_reset", etc.
     details: Dict[str, Any] = {}
