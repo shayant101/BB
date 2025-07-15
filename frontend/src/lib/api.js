@@ -30,14 +30,38 @@ const safeLocalStorage = {
   }
 };
 
-// Token management
+// Token management - Enhanced with debugging
 export const setAuthToken = (token) => {
+  console.log('🔧 setAuthToken called:', {
+    hasToken: !!token,
+    tokenPreview: token ? `${token.substring(0, 20)}...` : 'No token',
+    timestamp: new Date().toISOString(),
+    stackTrace: new Error().stack
+  });
+  
   if (token) {
+    // Store in localStorage
     safeLocalStorage.setItem('token', token);
+    console.log('✅ Token stored in localStorage');
+    
+    // Set in multiple places to ensure it's always available
     api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    api.defaults.headers['Authorization'] = `Bearer ${token}`;
+    console.log('✅ Token set in API headers');
+    
+    // Force update any existing requests
+    if (typeof window !== 'undefined') {
+      // Trigger a small delay to ensure token propagation
+      setTimeout(() => {
+        api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        console.log('✅ Token re-applied after delay');
+      }, 10);
+    }
   } else {
+    console.log('🗑️ Removing token');
     safeLocalStorage.removeItem('token');
     delete api.defaults.headers.common['Authorization'];
+    delete api.defaults.headers['Authorization'];
   }
 };
 
@@ -69,16 +93,36 @@ if (typeof window !== 'undefined') {
   }
 }
 
-// Request interceptor to add token
+// Request interceptor to add token - Enhanced with debugging
 api.interceptors.request.use(
   (config) => {
     const token = getAuthToken();
+    
+    // Debug logging
+    console.log('🔍 API Request Interceptor:', {
+      url: config.url,
+      method: config.method,
+      hasToken: !!token,
+      tokenPreview: token ? `${token.substring(0, 20)}...` : 'No token',
+      headers: config.headers
+    });
+    
     if (token) {
+      // Set both Authorization header and ensure it's in the config
       config.headers.Authorization = `Bearer ${token}`;
+      config.headers['Authorization'] = `Bearer ${token}`;
+      
+      // Also ensure it's in the default headers
+      api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      console.log('✅ Token attached to request:', config.url);
+    } else {
+      console.log('❌ No token available for request:', config.url);
     }
+    
     return config;
   },
   (error) => {
+    console.error('❌ Request interceptor error:', error);
     return Promise.reject(error);
   }
 );
