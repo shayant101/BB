@@ -2,6 +2,7 @@ services:
   - type: web
     name: bistroboard-api
     env: python
+    runtime: python-3.11.9
     region: oregon
     plan: starter
     buildCommand: |
