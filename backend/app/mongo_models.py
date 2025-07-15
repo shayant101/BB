@@ -29,13 +29,20 @@ class User(Document):
     """User document for restaurants, vendors, and admins"""
     user_id: Indexed(int, unique=True)  # Original SQLite ID
     username: Indexed(str, unique=True)
-    password_hash: str
+    password_hash: Optional[str] = None  # Optional for Google OAuth users
     role: Indexed(str)  # "restaurant", "vendor", "admin"
     name: str
     email: str
     phone: str
     address: str
     description: Optional[str] = None
+    
+    # Google OAuth fields
+    google_id: Optional[str] = None  # Google user ID
+    google_email: Optional[str] = None  # Google email (may differ from primary email)
+    google_name: Optional[str] = None  # Google display name
+    google_picture: Optional[str] = None  # Google profile picture URL
+    auth_provider: str = "local"  # "local", "google", or "both"
     
     # Admin fields
     is_active: bool = True

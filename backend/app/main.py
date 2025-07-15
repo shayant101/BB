@@ -1,8 +1,12 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from dotenv import load_dotenv
 from .mongodb import connect_to_mongo, close_mongo_connection, check_database_health
 from .routers import auth, orders, profiles, marketplace, vendor_profile
 from . import admin_routes
+
+# Load environment variables
+load_dotenv()
 
 # Create FastAPI app
 app = FastAPI(

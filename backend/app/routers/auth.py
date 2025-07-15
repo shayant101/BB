@@ -1,5 +1,6 @@
 from datetime import timedelta, datetime
 from fastapi import APIRouter, Depends, HTTPException, status, Request
+from pydantic import BaseModel
 from ..mongo_models import User
 from ..auth_simple import (
     verify_password,
@@ -9,8 +10,18 @@ from ..auth_simple import (
     UserLogin
 )
 from ..admin_auth import log_user_event
+from ..google_oauth import GoogleOAuthService
 
 router = APIRouter()
+
+# Pydantic models for Google OAuth
+class GoogleLoginRequest(BaseModel):
+    token: str
+    role: str = "restaurant"  # Default role for new users
+
+class GoogleConfigResponse(BaseModel):
+    client_id: str
+    redirect_uri: str
 
 @router.post("/login", response_model=Token)
 async def login_for_access_token(
@@ -95,3 +106,82 @@ async def login_for_access_token(
         "role": user.role,
         "name": user.name
     }
+
+@router.post("/google", response_model=Token)
+async def google_login(
+    google_request: GoogleLoginRequest,
+    request: Request
+):
+    """
+    Authenticate user with Google OAuth token
+    """
+    try:
+        # Verify Google token and get user info
+        google_user_info = await GoogleOAuthService.verify_google_token(google_request.token)
+        
+        # Find or create user
+        user = await GoogleOAuthService.find_or_create_user(
+            google_user_info,
+            role=google_request.role
+        )
+        
+        # Check if user account is active
+        if not user.is_active and user.role != "admin":
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Account is deactivated. Please contact support.",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        
+        # Log user login event
+        await log_user_event(
+            user_id=user.user_id,
+            event_type="login",
+            details={
+                "login_method": "google_oauth",
+                "google_id": user.google_id,
+                "user_agent": request.headers.get("user-agent"),
+                "success": True
+            },
+            request=request
+        )
+        
+        # Create access token
+        access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        access_token = create_access_token(
+            data={
+                "sub": user.username,
+                "user_id": user.user_id,
+                "role": user.role,
+                "name": user.name,
+                "is_impersonating": False
+            },
+            expires_delta=access_token_expires
+        )
+        
+        return {
+            "access_token": access_token,
+            "token_type": "bearer",
+            "user_id": user.user_id,
+            "role": user.role,
+            "name": user.name
+        }
+        
+    except HTTPException:
+        # Re-raise HTTP exceptions (like invalid token)
+        raise
+    except Exception as e:
+        # Log unexpected errors
+        print(f"❌ Google OAuth login error: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Google authentication failed"
+        )
+
+@router.get("/google/config", response_model=GoogleConfigResponse)
+async def get_google_config():
+    """
+    Get Google OAuth configuration for frontend
+    """
+    config = GoogleOAuthService.get_google_oauth_config()
+    return GoogleConfigResponse(**config)
