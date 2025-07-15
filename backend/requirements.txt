@@ -1,17 +1,17 @@
-fastapi==0.103.2
+fastapi==0.88.0
 uvicorn==0.22.0
 sqlalchemy==2.0.23
 python-jose[cryptography]==3.3.0
 python-multipart==0.0.6
 bcrypt==4.0.1
-pydantic==2.5.2
+pydantic==1.10.12
 python-dotenv==0.21.1
 passlib[bcrypt]==1.7.4
 
 # MongoDB dependencies
 pymongo==4.6.1
 motor==3.3.2
-beanie==1.24.0
+beanie==1.11.11
 dnspython==2.3.0
 
 # Google OAuth dependencies
