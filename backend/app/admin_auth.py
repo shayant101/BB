@@ -7,9 +7,7 @@ import secrets
 from fastapi import HTTPException, status, Depends, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
-from sqlalchemy.orm import Session
-from .models import User, AdminAuditLog, UserEventLog, ImpersonationSession
-from .database import get_db
+from .mongo_models import User, AdminAuditLog, UserEventLog, ImpersonationSession
 
 # Security configuration
 SECRET_KEY = "your-secret-key-change-in-production"
@@ -111,9 +109,8 @@ def verify_token(token: str) -> Dict[str, Any]:
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(security),
-    db: Session = Depends(get_db)
+async def get_current_user(
+    credentials: HTTPAuthorizationCredentials = Depends(security)
 ) -> User:
     """Get current user from token"""
     payload = verify_token(credentials.credentials)
@@ -125,7 +122,7 @@ def get_current_user(
             detail="Could not validate credentials"
         )
     
-    user = db.query(User).filter(User.username == username).first()
+    user = await User.find_one(User.username == username)
     if user is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -141,7 +138,7 @@ def get_current_user(
     
     return user
 
-def get_current_admin(current_user: User = Depends(get_current_user)) -> User:
+async def get_current_admin(current_user: User = Depends(get_current_user)) -> User:
     """Ensure current user is an admin"""
     if current_user.role != "admin":
         raise HTTPException(
@@ -150,8 +147,7 @@ def get_current_admin(current_user: User = Depends(get_current_user)) -> User:
         )
     return current_user
 
-def log_admin_action(
-    db: Session,
+async def log_admin_action(
     admin_id: int,
     action: str,
     target_user_id: Optional[int] = None,
@@ -163,16 +159,14 @@ def log_admin_action(
         admin_id=admin_id,
         target_user_id=target_user_id,
         action=action,
-        details=details,
+        details=details or {},
         ip_address=request.client.host if request else None,
         user_agent=request.headers.get("user-agent") if request else None,
         session_id=secrets.token_hex(16)
     )
-    db.add(audit_log)
-    db.commit()
+    await audit_log.save()
 
-def log_user_event(
-    db: Session,
+async def log_user_event(
     user_id: int,
     event_type: str,
     details: Optional[Dict[str, Any]] = None,
@@ -182,12 +176,11 @@ def log_user_event(
     event_log = UserEventLog(
         user_id=user_id,
         event_type=event_type,
-        details=details,
+        details=details or {},
         ip_address=request.client.host if request else None,
         user_agent=request.headers.get("user-agent") if request else None
     )
-    db.add(event_log)
-    db.commit()
+    await event_log.save()
 
 def get_token_payload(
     credentials: HTTPAuthorizationCredentials = Depends(security)
