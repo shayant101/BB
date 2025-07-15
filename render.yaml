@@ -2,7 +2,6 @@ services:
   - type: web
     name: bistroboard-api
     env: python
-    runtime: python-3.11.9
     region: oregon
     plan: starter
     buildCommand: |
@@ -12,7 +11,7 @@ services:
     healthCheckPath: /health
     envVars:
       - key: PYTHON_VERSION
-        value: "3.11.0"
+        value: "3.11.5"
       - key: PIP_NO_CACHE_DIR
         value: "1"
       - key: PIP_DISABLE_PIP_VERSION_CHECK
