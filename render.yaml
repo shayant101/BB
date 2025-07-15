@@ -4,12 +4,20 @@ services:
     env: python
     region: oregon
     plan: starter
-    buildCommand: pip install -r requirements.txt
+    buildCommand: |
+      pip install --upgrade pip
+      pip install --only-binary=all --no-compile -r requirements.txt
     startCommand: python -m uvicorn app.main:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /health
     envVars:
       - key: PYTHON_VERSION
         value: "3.11.0"
+      - key: PIP_NO_CACHE_DIR
+        value: "1"
+      - key: PIP_DISABLE_PIP_VERSION_CHECK
+        value: "1"
+      - key: PYTHONUNBUFFERED
+        value: "1"
       - key: MONGODB_URL
         sync: false
       - key: GOOGLE_CLIENT_ID
