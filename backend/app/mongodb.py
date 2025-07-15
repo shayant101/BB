@@ -6,8 +6,8 @@ from .mongo_models import (
     UserEventLog, ImpersonationSession
 )
 
-# MongoDB Atlas connection string
-MONGODB_URL = "mongodb+srv://shayanstoor:ZpzaX5Y4SJmP7e9d@clusterbb.gzjujes.mongodb.net/bistroboard?retryWrites=true&w=majority&appName=ClusterBB"
+# MongoDB Atlas connection string from environment variables
+MONGODB_URL = os.getenv("MONGODB_URL", "mongodb+srv://shayanstoor:ZpzaX5Y4SJmP7e9d@clusterbb.gzjujes.mongodb.net/bistroboard?retryWrites=true&w=majority&appName=ClusterBB")
 
 class Database:
     client: AsyncIOMotorClient = None
