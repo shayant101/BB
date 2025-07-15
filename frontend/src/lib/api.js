@@ -107,6 +107,11 @@ export const authAPI = {
     return response.data;
   },
   
+  updateGoogleUserRole: async (token, role) => {
+    const response = await api.put('/auth/google/role', { token, role });
+    return response.data;
+  },
+  
   getGoogleConfig: async () => {
     const response = await api.get('/auth/google/config');
     return response.data;

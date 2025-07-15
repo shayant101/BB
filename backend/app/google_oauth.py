@@ -9,12 +9,20 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-# Google OAuth configuration
-GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
-GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
+def get_google_credentials():
+    """Get Google OAuth credentials from environment variables"""
+    client_id = os.getenv("GOOGLE_CLIENT_ID")
+    client_secret = os.getenv("GOOGLE_CLIENT_SECRET")
+    
+    if not client_id or not client_secret:
+        logger.warning("Google OAuth credentials not found in environment variables")
+        logger.warning(f"GOOGLE_CLIENT_ID: {'Set' if client_id else 'Not set'}")
+        logger.warning(f"GOOGLE_CLIENT_SECRET: {'Set' if client_secret else 'Not set'}")
+    
+    return client_id, client_secret
 
-if not GOOGLE_CLIENT_ID or not GOOGLE_CLIENT_SECRET:
-    logger.warning("Google OAuth credentials not found in environment variables")
+# Get credentials dynamically
+GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET = get_google_credentials()
 
 class GoogleOAuthService:
     """Service for handling Google OAuth operations"""
@@ -34,11 +42,19 @@ class GoogleOAuthService:
             HTTPException: If token verification fails
         """
         try:
+            # Get credentials dynamically to ensure they're loaded after .env
+            client_id, _ = get_google_credentials()
+            if not client_id:
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail="Google OAuth not configured properly"
+                )
+            
             # Verify the token with Google
             idinfo = id_token.verify_oauth2_token(
-                token, 
-                requests.Request(), 
-                GOOGLE_CLIENT_ID
+                token,
+                requests.Request(),
+                client_id
             )
             
             # Verify the issuer
@@ -186,7 +202,8 @@ class GoogleOAuthService:
         Returns:
             Dict containing Google OAuth configuration
         """
+        client_id, _ = get_google_credentials()
         return {
-            "client_id": GOOGLE_CLIENT_ID,
+            "client_id": client_id,
             "redirect_uri": os.getenv("GOOGLE_REDIRECT_URI", "http://localhost:3000"),
         }

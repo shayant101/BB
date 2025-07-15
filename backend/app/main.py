@@ -1,12 +1,24 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
+import os
+import logging
 from .mongodb import connect_to_mongo, close_mongo_connection, check_database_health
 from .routers import auth, orders, profiles, marketplace, vendor_profile
 from . import admin_routes
 
-# Load environment variables
-load_dotenv()
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Load environment variables with explicit path
+env_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), '.env')
+load_dotenv(env_path)
+
+# Debug: Log environment variable loading
+logger.info(f"Loading .env from: {env_path}")
+logger.info(f"GOOGLE_CLIENT_ID loaded: {'Yes' if os.getenv('GOOGLE_CLIENT_ID') else 'No'}")
+logger.info(f"GOOGLE_CLIENT_SECRET loaded: {'Yes' if os.getenv('GOOGLE_CLIENT_SECRET') else 'No'}")
 
 # Create FastAPI app
 app = FastAPI(
