@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { adminAPI } from '../lib/api';
 
 export default function AdminUserManagement() {
   const [users, setUsers] = useState([]);
@@ -18,21 +19,15 @@ export default function AdminUserManagement() {
 
   const fetchUsers = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const params = new URLSearchParams();
+      setLoading(true);
       
-      if (searchTerm) params.append('search', searchTerm);
-      if (statusFilter !== 'all') params.append('status', statusFilter);
-      if (roleFilter !== 'all') params.append('role', roleFilter);
+      const params = {};
+      if (searchTerm) params.search = searchTerm;
+      if (statusFilter !== 'all') params.status = statusFilter;
+      if (roleFilter !== 'all') params.role = roleFilter;
       
-      const response = await fetch(`http://localhost:8000/api/admin/users?${params}`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        setUsers(data);
-      }
+      const data = await adminAPI.getUsers(params);
+      setUsers(data);
       setLoading(false);
     } catch (error) {
       console.error('Error fetching users:', error);
@@ -42,22 +37,9 @@ export default function AdminUserManagement() {
 
   const handleStatusChange = async (userId, newStatus, reason) => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:8000/api/admin/users/${userId}/status`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ status: newStatus, reason })
-      });
-
-      if (response.ok) {
-        fetchUsers(); // Refresh the list
-        alert(`User status updated to ${newStatus}`);
-      } else {
-        alert('Failed to update user status');
-      }
+      await adminAPI.updateUserStatus(userId, newStatus);
+      fetchUsers(); // Refresh the list
+      alert(`User status updated to ${newStatus}`);
     } catch (error) {
       console.error('Error updating user status:', error);
       alert('Error updating user status');
@@ -66,16 +48,9 @@ export default function AdminUserManagement() {
 
   const fetchUserDetails = async (userId) => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:8000/api/admin/users/${userId}`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      
-      if (response.ok) {
-        const userData = await response.json();
-        setSelectedUser(userData);
-        setShowUserDetail(true);
-      }
+      const userData = await adminAPI.getUsers({ id: userId });
+      setSelectedUser(userData);
+      setShowUserDetail(true);
     } catch (error) {
       console.error('Error fetching user details:', error);
     }
@@ -399,26 +374,12 @@ function CreateUserModal({ onClose, onSuccess }) {
     setLoading(true);
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:8000/api/admin/users', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(formData)
-      });
-
-      if (response.ok) {
-        alert('User created successfully!');
-        onSuccess();
-      } else {
-        const error = await response.json();
-        alert(`Error: ${error.detail || 'Failed to create user'}`);
-      }
+      await adminAPI.createUser(formData);
+      alert('User created successfully!');
+      onSuccess();
     } catch (error) {
       console.error('Error creating user:', error);
-      alert('Error creating user');
+      alert(`Error: ${error.response?.data?.detail || 'Failed to create user'}`);
     } finally {
       setLoading(false);
     }

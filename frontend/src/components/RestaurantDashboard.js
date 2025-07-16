@@ -245,10 +245,10 @@ export default function RestaurantDashboard({ user }) {
               </div>
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500 flex items-center gap-2">
+              <div className="text-sm font-medium text-gray-500 flex items-center gap-2">
                 Pending
                 {stats.pending > 0 && <div className="w-2 h-2 bg-yellow-500 rounded-full blink-dot"></div>}
-              </p>
+              </div>
               <p className="text-2xl font-bold text-gray-900">{stats.pending}</p>
             </div>
           </div>

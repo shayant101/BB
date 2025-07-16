@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Line, Bar, Doughnut } from 'react-chartjs-2';
+import { adminAPI } from '../lib/api';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -41,20 +42,14 @@ export default function AdminDashboard() {
 
   const fetchDashboardData = async () => {
     try {
-      const token = localStorage.getItem('token');
+      setLoading(true);
       
       // Fetch dashboard stats
-      const statsResponse = await fetch('http://localhost:8000/api/admin/dashboard-stats', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      const statsData = await statsResponse.json();
+      const statsData = await adminAPI.getDashboardStats();
       setStats(statsData);
 
       // Fetch action queues
-      const queuesResponse = await fetch('http://localhost:8000/api/admin/action-queues', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      const queuesData = await queuesResponse.json();
+      const queuesData = await adminAPI.getActionQueues();
       setActionQueues(queuesData);
 
       // Generate AI insights
@@ -266,10 +261,10 @@ export default function AdminDashboard() {
               </div>
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500 flex items-center gap-2">
+              <div className="text-sm font-medium text-gray-500 flex items-center gap-2">
                 Pending Approvals
                 {(stats?.pending_vendor_approvals || 0) > 0 && <div className="w-2 h-2 bg-red-500 rounded-full blink-dot"></div>}
-              </p>
+              </div>
               <p className="text-2xl font-bold text-gray-900">{stats?.pending_vendor_approvals || 0}</p>
             </div>
           </div>
@@ -283,10 +278,10 @@ export default function AdminDashboard() {
               </div>
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-500 flex items-center gap-2">
+              <div className="text-sm font-medium text-gray-500 flex items-center gap-2">
                 New Users (24h)
                 {(stats?.recent_signups_24h || 0) > 0 && <div className="w-2 h-2 bg-green-500 rounded-full blink-dot"></div>}
-              </p>
+              </div>
               <p className="text-2xl font-bold text-gray-900">{stats?.recent_signups_24h || 0}</p>
             </div>
           </div>

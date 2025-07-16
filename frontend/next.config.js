@@ -41,11 +41,7 @@ const nextConfig = {
   // Redirects for production
   async redirects() {
     return [
-      {
-        source: '/admin',
-        destination: '/admin/dashboard',
-        permanent: false,
-      },
+      // Removed admin redirect - admin page is at /admin, not /admin/dashboard
     ];
   },
   
@@ -57,7 +53,7 @@ const nextConfig = {
   
   // Build configuration
   experimental: {
-    optimizeCss: true,
+    // Removed optimizeCss to fix build issues
   },
 };
 

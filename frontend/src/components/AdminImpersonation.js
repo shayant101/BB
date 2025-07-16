@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { adminAPI } from '../lib/api';
 
 export default function AdminImpersonation() {
   const [users, setUsers] = useState([]);
@@ -16,19 +17,14 @@ export default function AdminImpersonation() {
 
   const fetchUsers = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const params = new URLSearchParams();
-      if (searchTerm) params.append('search', searchTerm);
+      setLoading(true);
       
-      const response = await fetch(`http://localhost:8000/api/admin/users?${params}`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+      const params = {};
+      if (searchTerm) params.search = searchTerm;
       
-      if (response.ok) {
-        const data = await response.json();
-        // Filter out admin users for impersonation
-        setUsers(data.filter(user => user.role !== 'admin'));
-      }
+      const data = await adminAPI.getUsers(params);
+      // Filter out admin users for impersonation
+      setUsers(data.filter(user => user.role !== 'admin'));
       setLoading(false);
     } catch (error) {
       console.error('Error fetching users:', error);
@@ -38,15 +34,8 @@ export default function AdminImpersonation() {
 
   const fetchImpersonationHistory = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:8000/api/admin/audit-logs?action=impersonation_started&limit=10', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        setImpersonationHistory(data);
-      }
+      const data = await adminAPI.getAuditLogs({ action: 'impersonation_started', limit: 10 });
+      setImpersonationHistory(data);
     } catch (error) {
       console.error('Error fetching impersonation history:', error);
     }
@@ -59,40 +48,22 @@ export default function AdminImpersonation() {
     }
 
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(`http://localhost:8000/api/admin/users/${user.id}/impersonate`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          target_user_id: user.id,
-          reason: reason
-        })
+      const data = await adminAPI.impersonateUser(user.id);
+      setActiveSession({
+        ...data,
+        startTime: new Date(),
+        user: user
       });
-
-      if (response.ok) {
-        const data = await response.json();
-        setActiveSession({
-          ...data,
-          startTime: new Date(),
-          user: user
-        });
-        
-        // Store impersonation token temporarily
-        sessionStorage.setItem('impersonation_token', data.impersonation_token);
-        sessionStorage.setItem('impersonation_user', JSON.stringify(user));
-        
-        alert(`Impersonation session started for ${user.name}. Session expires in 5 minutes.`);
-        fetchImpersonationHistory(); // Refresh history
-      } else {
-        const error = await response.json();
-        alert(`Error: ${error.detail || 'Failed to start impersonation'}`);
-      }
+      
+      // Store impersonation token temporarily
+      sessionStorage.setItem('impersonation_token', data.impersonation_token);
+      sessionStorage.setItem('impersonation_user', JSON.stringify(user));
+      
+      alert(`Impersonation session started for ${user.name}. Session expires in 5 minutes.`);
+      fetchImpersonationHistory(); // Refresh history
     } catch (error) {
       console.error('Error starting impersonation:', error);
-      alert('Error starting impersonation session');
+      alert(`Error: ${error.response?.data?.detail || 'Failed to start impersonation'}`);
     }
   };
 

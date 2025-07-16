@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { adminAPI } from '../lib/api';
 
 export default function AdminAuditLogs() {
   const [auditLogs, setAuditLogs] = useState([]);
@@ -22,21 +23,15 @@ export default function AdminAuditLogs() {
 
   const fetchAuditLogs = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const params = new URLSearchParams();
+      setLoading(true);
       
+      const params = {};
       Object.entries(filters).forEach(([key, value]) => {
-        if (value) params.append(key, value);
+        if (value) params[key] = value;
       });
       
-      const response = await fetch(`http://localhost:8000/api/admin/audit-logs?${params}`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        setAuditLogs(data);
-      }
+      const data = await adminAPI.getAuditLogs(params);
+      setAuditLogs(data);
       setLoading(false);
     } catch (error) {
       console.error('Error fetching audit logs:', error);
@@ -46,15 +41,8 @@ export default function AdminAuditLogs() {
 
   const fetchAdmins = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:8000/api/admin/users?role=admin', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        setAdmins(data);
-      }
+      const data = await adminAPI.getUsers({ role: 'admin' });
+      setAdmins(data);
     } catch (error) {
       console.error('Error fetching admins:', error);
     }
@@ -62,15 +50,8 @@ export default function AdminAuditLogs() {
 
   const fetchUsers = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:8000/api/admin/users?limit=100', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        setUsers(data);
-      }
+      const data = await adminAPI.getUsers({ limit: 100 });
+      setUsers(data);
     } catch (error) {
       console.error('Error fetching users:', error);
     }

@@ -5,11 +5,11 @@
   "installCommand": "npm install",
   "outputDirectory": ".next",
   "env": {
-    "NEXT_PUBLIC_API_URL": "@api-url"
+    "NEXT_PUBLIC_API_URL": "https://bb-1jm5.onrender.com/api"
   },
   "build": {
     "env": {
-      "NEXT_PUBLIC_API_URL": "@api-url"
+      "NEXT_PUBLIC_API_URL": "https://bb-1jm5.onrender.com/api"
     }
   },
   "functions": {
@@ -39,7 +39,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://bistroboard-api.onrender.com/api/:path*"
+      "destination": "https://bb-1jm5.onrender.com/api/:path*"
     }
   ]
 }
