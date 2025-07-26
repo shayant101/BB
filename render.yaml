@@ -7,7 +7,7 @@ services:
     buildCommand: |
       pip install --upgrade pip
       pip install --only-binary=all --no-compile -r requirements.txt
-    startCommand: python backend/debug_production.py
+    startCommand: python -m uvicorn app.main:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /health
     envVars:
       - key: PYTHON_VERSION

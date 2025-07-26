@@ -35,35 +35,13 @@ app = FastAPI(
 )
 
 # Configure comprehensive CORS middleware
-# Configure robust CORS for production
-allowed_origins_str = os.getenv("ALLOWED_ORIGINS", "")
-allowed_origins = []
-
-if not allowed_origins_str:
-    # Default to a permissive policy for local development if not set
-    logger.warning("ALLOWED_ORIGINS not set, defaulting to permissive CORS policy for development.")
-    allowed_origins.append("*")
-else:
-    # Handle multiple origins and automatically include www/non-www variants
-    base_origins = [origin.strip() for origin in allowed_origins_str.split(',')]
-    for origin in base_origins:
-        if origin not in allowed_origins:
-            allowed_origins.append(origin)
-        
-        # If it's a root domain, also add the 'www' version
-        if origin.startswith("https://") and not origin.startswith("https://www."):
-            www_origin = origin.replace("https://", "https://www.")
-            if www_origin not in allowed_origins:
-                allowed_origins.append(www_origin)
-
-logger.info(f"Final CORS origins configured: {allowed_origins}")
-
+# Configure a fully permissive CORS policy
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=allowed_origins,
+    allow_origins=["*"],  # Allow all origins
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["*"],  # Allow all methods
+    allow_headers=["*"],  # Allow all headers
 )
 
 # Include routers
