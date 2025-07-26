@@ -22,8 +22,11 @@ async def connect_to_mongo():
         
         # Create MongoDB client
         db.client = AsyncIOMotorClient(MONGODB_URL)
-        db.database = db.client.bistroboard
-        print("🔄 MongoDB client created")
+        # Get the database from the client. If the database is specified in the
+        # connection string, that database will be used. Otherwise, it will default
+        # to the 'bistroboard' database.
+        db.database = db.client.get_database()
+        print(f"🔄 MongoDB client created for database: '{db.database.name}'")
         
         # Test the connection
         await db.client.admin.command('ping')

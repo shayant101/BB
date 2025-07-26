@@ -31,7 +31,9 @@ class MongoDBSeeder:
         """Connect to MongoDB Atlas"""
         try:
             self.client = AsyncIOMotorClient(MONGODB_URL)
-            self.db = self.client.bistroboard
+            self.db = self.client.get_database()
+            
+            print(f"✅ Seeding target database: '{self.db.name}'")
             
             # Test connection
             await self.client.admin.command('ping')
