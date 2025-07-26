@@ -16,29 +16,18 @@ IMPERSONATION_TOKEN_EXPIRE_MINUTES = 5
 
 security = HTTPBearer()
 
-# Pydantic models for admin operations
-class AdminToken(BaseModel):
-    access_token: str
-    token_type: str
-    user_id: int
-    role: str
-    name: str
-    is_impersonating: bool = False
-    impersonated_user_id: Optional[int] = None
-    impersonator_id: Optional[int] = None
-
+# Pydantic models
 class ImpersonationRequest(BaseModel):
-    target_user_id: int
     reason: str
 
 class UserStatusUpdate(BaseModel):
-    status: str  # "active", "inactive", "pending_approval"
+    status: str
     reason: Optional[str] = None
 
 class AdminUserCreate(BaseModel):
     username: str
     password: str
-    role: str  # "restaurant", "vendor"
+    role: str
     name: str
     email: str
     phone: str
@@ -46,34 +35,18 @@ class AdminUserCreate(BaseModel):
     description: Optional[str] = None
     status: str = "active"
 
-def verify_password(plain_password: str, hashed_password: str) -> bool:
-    """Simple password verification using SHA256"""
-    return hashlib.sha256(plain_password.encode()).hexdigest() == hashed_password
-
 def get_password_hash(password: str) -> str:
-    """Simple password hashing using SHA256"""
     return hashlib.sha256(password.encode()).hexdigest()
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
-    """Create a simple JWT-like token with enhanced claims for admin operations"""
     to_encode = data.copy()
-    if expires_delta:
-        expire = datetime.utcnow() + expires_delta
-    else:
-        expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    
+    expire = datetime.utcnow() + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
     to_encode.update({"exp": expire.timestamp()})
-    
-    # Simple encoding (not secure for production)
     token_string = json.dumps(to_encode)
-    encoded_token = base64.b64encode(token_string.encode()).decode()
-    
-    return encoded_token
+    return base64.b64encode(token_string.encode()).decode()
 
 def create_impersonation_token(admin_id: int, target_user_id: int, target_user_data: dict) -> str:
-    """Create a short-lived impersonation token"""
     expire = datetime.utcnow() + timedelta(minutes=IMPERSONATION_TOKEN_EXPIRE_MINUTES)
-    
     token_data = {
         "sub": target_user_data["username"],
         "user_id": target_user_id,
@@ -83,130 +56,62 @@ def create_impersonation_token(admin_id: int, target_user_id: int, target_user_d
         "impersonator_id": admin_id,
         "exp": expire.timestamp()
     }
-    
     return create_access_token(token_data, timedelta(minutes=IMPERSONATION_TOKEN_EXPIRE_MINUTES))
 
 def verify_token(token: str) -> Dict[str, Any]:
-    """Verify and decode token"""
     try:
-        # Decode the token
         token_string = base64.b64decode(token.encode()).decode()
         payload = json.loads(token_string)
-        
-        # Check expiration
         if datetime.utcnow().timestamp() > payload.get("exp", 0):
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Token expired",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
-        
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token expired")
         return payload
     except Exception:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Could not validate credentials",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Could not validate credentials")
 
-async def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(security)
-) -> User:
-    """Get current user from token"""
+async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)) -> User:
     payload = verify_token(credentials.credentials)
     username = payload.get("sub")
-    
-    if username is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Could not validate credentials"
-        )
+    if not username:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
     
     user = await User.find_one(User.username == username)
-    if user is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="User not found"
-        )
+    if not user:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
     
-    # Check if user is active (unless it's an impersonation session)
     if not payload.get("is_impersonating", False) and not user.is_active:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="User account is deactivated"
-        )
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User account is deactivated")
     
     return user
 
 async def get_current_admin(current_user: User = Depends(get_current_user)) -> User:
-    """Ensure current user is an admin"""
     if current_user.role != "admin":
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Admin access required"
-        )
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin access required")
     return current_user
 
-async def log_admin_action(
-    admin_id: int,
-    action: str,
-    target_user_id: Optional[int] = None,
-    details: Optional[Dict[str, Any]] = None,
-    request: Optional[Request] = None
-):
-    """Log admin action to audit trail"""
+async def log_admin_action(admin_id: int, action: str, target_user_id: Optional[int] = None, details: Optional[Dict[str, Any]] = None, request: Optional[Request] = None):
+    last_log = await AdminAuditLog.find().sort(-AdminAuditLog.log_id).limit(1).first_or_none()
+    next_log_id = (last_log.log_id + 1) if last_log else 1
+    
     audit_log = AdminAuditLog(
+        log_id=next_log_id,
         admin_id=admin_id,
         target_user_id=target_user_id,
         action=action,
         details=details or {},
         ip_address=request.client.host if request else None,
-        user_agent=request.headers.get("user-agent") if request else None,
-        session_id=secrets.token_hex(16)
+        user_agent=request.headers.get("user-agent") if request else None
     )
-    await audit_log.save()
+    await audit_log.insert()
 
-async def log_user_event(
-    user_id: int,
-    event_type: str,
-    details: Optional[Dict[str, Any]] = None,
-    request: Optional[Request] = None
-):
-    """Log user event with retry logic for revision conflicts"""
-    max_retries = 3
-    
-    for attempt in range(max_retries):
-        try:
-            # Create a fresh event log document for each attempt
-            event_log = UserEventLog(
-                user_id=user_id,
-                event_type=event_type,
-                details=details or {},
-                ip_address=request.client.host if request else None,
-                user_agent=request.headers.get("user-agent") if request else None
-            )
-            
-            # Save the event log
-            await event_log.save()
-            print(f"✅ Event log saved successfully: user_id={user_id}, event_type={event_type}")
-            return  # Success, exit the function
-            
-        except Exception as e:
-            error_name = type(e).__name__
-            print(f"⚠️  Attempt {attempt + 1}/{max_retries} failed to save event log: {error_name}: {e}")
-            
-            # If this is the last attempt, log the failure but don't crash the login
-            if attempt == max_retries - 1:
-                print(f"❌ Failed to save event log after {max_retries} attempts. Login will continue.")
-                return
-            
-            # For revision conflicts, wait a bit before retrying
-            if "RevisionIdWasChanged" in error_name:
-                import asyncio
-                await asyncio.sleep(0.1 * (attempt + 1))  # Exponential backoff
+async def log_user_event(user_id: int, event_type: str, details: Optional[Dict[str, Any]] = None, request: Optional[Request] = None):
+    event_log = UserEventLog(
+        user_id=user_id,
+        event_type=event_type,
+        details=details or {},
+        ip_address=request.client.host if request else None,
+        user_agent=request.headers.get("user-agent") if request else None
+    )
+    await event_log.insert()
 
-def get_token_payload(
-    credentials: HTTPAuthorizationCredentials = Depends(security)
-) -> Dict[str, Any]:
-    """Get token payload without user validation (for impersonation checks)"""
+def get_token_payload(credentials: HTTPAuthorizationCredentials = Depends(security)) -> Dict[str, Any]:
     return verify_token(credentials.credentials)

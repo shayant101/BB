@@ -38,7 +38,7 @@ export default function NewOrderForm({ vendors, onOrderCreated, onCancel, presel
     }
   };
 
-  const selectedVendorData = vendors.find(v => v.id === parseInt(selectedVendor));
+  const selectedVendorData = vendors.find(v => v.user_id === parseInt(selectedVendor));
 
   return (
     <div className="space-y-6">
@@ -86,7 +86,7 @@ export default function NewOrderForm({ vendors, onOrderCreated, onCancel, presel
               >
                 <option value="">Choose a vendor...</option>
                 {vendors.map(vendor => (
-                  <option key={vendor.id} value={vendor.id}>
+                  <option key={vendor.user_id} value={vendor.user_id}>
                     {vendor.name}
                   </option>
                 ))}
@@ -220,13 +220,13 @@ export default function NewOrderForm({ vendors, onOrderCreated, onCancel, presel
             <div className="space-y-2">
               {vendors.map(vendor => (
                 <div
-                  key={vendor.id}
+                  key={vendor.user_id}
                   className={`p-3 rounded-lg border cursor-pointer transition-colors ${
-                    selectedVendor === vendor.id.toString()
+                    selectedVendor === vendor.user_id.toString()
                       ? 'border-primary bg-blue-50'
                       : 'border-gray-200 hover:border-gray-300'
                   }`}
-                  onClick={() => setSelectedVendor(vendor.id.toString())}
+                  onClick={() => setSelectedVendor(vendor.user_id.toString())}
                 >
                   <div className="font-medium text-gray-900">{vendor.name}</div>
                   <div className="text-sm text-gray-600">{vendor.phone}</div>
