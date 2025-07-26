@@ -1,6 +1,21 @@
 import axios from 'axios';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
+let API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
+
+// In a production environment, the API URL must be set.
+// This prevents deploying a broken frontend.
+if (process.env.NODE_ENV === 'production' && !API_BASE_URL) {
+  console.error('FATAL: NEXT_PUBLIC_API_URL environment variable is not set for production.');
+  // Note: This will cause an error, but a visible one.
+  // In a real CI/CD pipeline, you'd want the build to fail here.
+  API_BASE_URL = ''; // Set to empty to ensure requests fail visibly.
+}
+
+// For local development, we can default to localhost.
+if (!API_BASE_URL) {
+  API_BASE_URL = 'http://localhost:8000/api';
+  console.warn(`⚠️ NEXT_PUBLIC_API_URL not set, defaulting to ${API_BASE_URL}`);
+}
 
 // Create axios instance with default config
 const api = axios.create({
@@ -46,17 +61,7 @@ export const setAuthToken = (token) => {
     
     // Set in multiple places to ensure it's always available
     api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-    api.defaults.headers['Authorization'] = `Bearer ${token}`;
     console.log('✅ Token set in API headers');
-    
-    // Force update any existing requests
-    if (typeof window !== 'undefined') {
-      // Trigger a small delay to ensure token propagation
-      setTimeout(() => {
-        api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-        console.log('✅ Token re-applied after delay');
-      }, 10);
-    }
   } else {
     console.log('🗑️ Removing token');
     safeLocalStorage.removeItem('token');

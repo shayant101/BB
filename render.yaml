@@ -30,6 +30,8 @@ services:
         sync: false
       - key: ENVIRONMENT
         value: production
+      - key: ALLOWED_ORIGINS
+        sync: false
     # Auto-deploy from GitHub
     autoDeploy: true
     branch: main

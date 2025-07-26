@@ -18,19 +18,23 @@ db = Database()
 async def connect_to_mongo():
     """Create database connection and initialize Beanie"""
     try:
+        print("🔄 Starting MongoDB connection...")
+        
         # Create MongoDB client
         db.client = AsyncIOMotorClient(MONGODB_URL)
         db.database = db.client.bistroboard
+        print("🔄 MongoDB client created")
         
         # Test the connection
         await db.client.admin.command('ping')
         print("✅ Successfully connected to MongoDB Atlas")
         
         # Initialize Beanie with document models
+        print("🔄 Initializing Beanie ODM...")
         await init_beanie(
             database=db.database,
             document_models=[
-                User, Order, VendorCategory, 
+                User, Order, VendorCategory,
                 AdminAuditLog, UserEventLog, ImpersonationSession
             ]
         )
@@ -38,6 +42,8 @@ async def connect_to_mongo():
         
     except Exception as e:
         print(f"❌ Failed to connect to MongoDB: {e}")
+        import traceback
+        traceback.print_exc()
         raise
 
 async def close_mongo_connection():

@@ -203,7 +203,13 @@ class GoogleOAuthService:
             Dict containing Google OAuth configuration
         """
         client_id, _ = get_google_credentials()
+        redirect_uri = os.getenv("GOOGLE_REDIRECT_URI", "http://localhost:3000")
+        
+        logger.info(f"Providing Google OAuth config to frontend:")
+        logger.info(f"  Client ID: {client_id}")
+        logger.info(f"  Redirect URI: {redirect_uri}")
+        
         return {
             "client_id": client_id,
-            "redirect_uri": os.getenv("GOOGLE_REDIRECT_URI", "http://localhost:3000"),
+            "redirect_uri": redirect_uri,
         }
