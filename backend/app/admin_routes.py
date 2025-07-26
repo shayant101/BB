@@ -59,7 +59,7 @@ class AuditLogResponse(BaseModel):
 
 @router.get("/dashboard-stats", response_model=DashboardStats)
 async def get_dashboard_stats(admin: User = Depends(get_current_admin)):
-    total_users = await User.find(User.role.is_in(["restaurant", "vendor"])).count()
+    total_users = await User.find(User.role.in_(["restaurant", "vendor"])).count()
     total_restaurants = await User.find(User.role == "restaurant").count()
     total_vendors = await User.find(User.role == "vendor").count()
     total_orders = await Order.find().count()
@@ -75,7 +75,7 @@ async def get_dashboard_stats(admin: User = Depends(get_current_admin)):
     
     recent_threshold = datetime.utcnow() - timedelta(hours=24)
     recent_signups_24h = await User.find(
-        User.role.is_in(["restaurant", "vendor"]),
+        User.role.in_(["restaurant", "vendor"]),
         User.created_at > recent_threshold
     ).count()
     
@@ -125,7 +125,7 @@ async def list_users(
     role: Optional[str] = Query(None),
     search: Optional[str] = Query(None)
 ):
-    query_conditions = [User.role.is_in(["restaurant", "vendor"])]
+    query_conditions = [User.role.in_(["restaurant", "vendor"])]
     if status:
         query_conditions.append(User.status == status)
     if role:
