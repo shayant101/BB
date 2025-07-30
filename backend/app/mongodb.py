@@ -2,8 +2,11 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from beanie import init_beanie
 import os
 from .mongo_models import (
-    User, Order, VendorCategory, AdminAuditLog, 
+    User, Order, VendorCategory, AdminAuditLog,
     UserEventLog, ImpersonationSession
+)
+from .inventory_models import (
+    InventoryCategory, InventoryItem, InventorySKU, InventoryCounter
 )
 
 # MongoDB Atlas connection string from environment variables
@@ -38,7 +41,8 @@ async def connect_to_mongo():
             database=db.database,
             document_models=[
                 User, Order, VendorCategory,
-                AdminAuditLog, UserEventLog, ImpersonationSession
+                AdminAuditLog, UserEventLog, ImpersonationSession,
+                InventoryCategory, InventoryItem, InventorySKU, InventoryCounter
             ]
         )
         print("✅ Beanie initialized with document models")

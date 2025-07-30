@@ -80,7 +80,7 @@ export default function OrderList({ orders, userRole, onRefresh }) {
         <div className="space-y-4">
           {sortedOrders.map(order => (
             <OrderCard
-              key={order.id}
+              key={order.order_id}
               order={order}
               userRole={userRole}
               onClick={() => setSelectedOrder(order)}

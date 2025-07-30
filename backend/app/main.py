@@ -24,7 +24,7 @@ logger.info(f"GOOGLE_CLIENT_SECRET loaded: {'Yes' if os.getenv('GOOGLE_CLIENT_SE
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .mongodb import connect_to_mongo, close_mongo_connection, check_database_health
-from .routers import auth, orders, profiles, marketplace, vendor_profile
+from .routers import auth, orders, profiles, marketplace, vendor_profile, inventory
 from . import admin_routes
 
 # Create FastAPI app
@@ -50,6 +50,7 @@ app.include_router(orders.router, prefix="/api", tags=["orders"])
 app.include_router(profiles.router, prefix="/api/profiles", tags=["profiles"])
 app.include_router(marketplace.router, prefix="/api/marketplace", tags=["marketplace"])
 app.include_router(vendor_profile.router, prefix="/api/vendor", tags=["vendor-profile"])
+app.include_router(inventory.router, prefix="/api/inventory", tags=["inventory"])
 app.include_router(admin_routes.router, tags=["admin"])
 
 # MongoDB connection management

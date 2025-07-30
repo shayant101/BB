@@ -1,4 +1,5 @@
 import './globals.css'
+import AuthInitializer from '../src/components/AuthInitializer';
 
 export const metadata = {
   title: 'BistroBoard - Restaurant Supplier Management',
@@ -9,6 +10,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className="bg-gray-50 min-h-screen">
+        <AuthInitializer />
         {children}
       </body>
     </html>

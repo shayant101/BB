@@ -90,13 +90,8 @@ export const getUser = () => {
   return user ? JSON.parse(user) : null;
 };
 
-// Initialize token from localStorage on app start (client-side only)
-if (typeof window !== 'undefined') {
-  const token = getAuthToken();
-  if (token) {
-    api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-  }
-}
+// Token initialization is now handled in a client-side component
+// to ensure it only runs in the browser.
 
 // Request interceptor to add token - Enhanced with debugging
 api.interceptors.request.use(
@@ -301,6 +296,112 @@ export const adminAPI = {
   getAuditLogs: async (params = {}) => {
     const queryString = new URLSearchParams(params).toString();
     const response = await api.get(`/admin/audit-logs${queryString ? `?${queryString}` : ''}`);
+    return response.data;
+  }
+};
+
+// Inventory API
+export const inventoryAPI = {
+  // Categories
+  getCategories: async (includeInactive = false) => {
+    const response = await api.get(`/inventory/categories?include_inactive=${includeInactive}`);
+    return response.data;
+  },
+  
+  getCategory: async (categoryId) => {
+    const response = await api.get(`/inventory/categories/${categoryId}`);
+    return response.data;
+  },
+  
+  createCategory: async (categoryData) => {
+    const response = await api.post('/inventory/categories', categoryData);
+    return response.data;
+  },
+  
+  updateCategory: async (categoryId, categoryData) => {
+    const response = await api.put(`/inventory/categories/${categoryId}`, categoryData);
+    return response.data;
+  },
+  
+  deleteCategory: async (categoryId) => {
+    const response = await api.delete(`/inventory/categories/${categoryId}`);
+    return response.data;
+  },
+  
+  // Items
+  getItems: async (params = {}) => {
+    const queryString = new URLSearchParams(params).toString();
+    const response = await api.get(`/inventory/items${queryString ? `?${queryString}` : ''}`);
+    return response.data;
+  },
+  
+  getItem: async (itemId) => {
+    const response = await api.get(`/inventory/items/${itemId}`);
+    return response.data;
+  },
+  
+  createItem: async (itemData) => {
+    const response = await api.post('/inventory/items', itemData);
+    return response.data;
+  },
+  
+  updateItem: async (itemId, itemData) => {
+    const response = await api.put(`/inventory/items/${itemId}`, itemData);
+    return response.data;
+  },
+  
+  deleteItem: async (itemId) => {
+    const response = await api.delete(`/inventory/items/${itemId}`);
+    return response.data;
+  },
+  
+  getCategoryItems: async (categoryId, params = {}) => {
+    const queryString = new URLSearchParams(params).toString();
+    const response = await api.get(`/inventory/categories/${categoryId}/items${queryString ? `?${queryString}` : ''}`);
+    return response.data;
+  },
+  
+  // SKUs
+  getSKUs: async (params = {}) => {
+    const queryString = new URLSearchParams(params).toString();
+    const response = await api.get(`/inventory/skus${queryString ? `?${queryString}` : ''}`);
+    return response.data;
+  },
+  
+  getSKU: async (skuId) => {
+    const response = await api.get(`/inventory/skus/${skuId}`);
+    return response.data;
+  },
+  
+  createSKU: async (skuData) => {
+    const response = await api.post('/inventory/skus', skuData);
+    return response.data;
+  },
+  
+  updateSKU: async (skuId, skuData) => {
+    const response = await api.put(`/inventory/skus/${skuId}`, skuData);
+    return response.data;
+  },
+  
+  deleteSKU: async (skuId) => {
+    const response = await api.delete(`/inventory/skus/${skuId}`);
+    return response.data;
+  },
+  
+  getItemSKUs: async (itemId, includeInactive = false) => {
+    const response = await api.get(`/inventory/items/${itemId}/skus?include_inactive=${includeInactive}`);
+    return response.data;
+  },
+  
+  // Stock management
+  updateStock: async (skuId, quantityChange, operation = 'set') => {
+    const response = await api.patch(`/inventory/skus/${skuId}/stock?quantity_change=${quantityChange}&operation=${operation}`);
+    return response.data;
+  },
+  
+  // Dashboard/Summary
+  getInventorySummary: async () => {
+    const response = await api.get('/inventory/summary');
     return response.data;
   }
 };
