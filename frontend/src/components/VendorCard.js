@@ -4,7 +4,8 @@ import { useState } from 'react';
 import { StarIcon, MapPinIcon, ClockIcon, CurrencyDollarIcon } from '@heroicons/react/24/solid';
 import { StarIcon as StarOutlineIcon } from '@heroicons/react/24/outline';
 
-export default function VendorCard({ vendor, onViewDetails, onQuickOrder, compact = false }) {
+import Link from 'next/link';
+export default function VendorCard({ vendor, onQuickOrder, compact = false }) {
   const [imageError, setImageError] = useState(false);
 
   const renderStars = (rating) => {
@@ -233,12 +234,9 @@ export default function VendorCard({ vendor, onViewDetails, onQuickOrder, compac
       {/* Actions */}
       <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
         <div className="flex gap-3">
-          <button
-            onClick={() => onViewDetails?.(vendor)}
-            className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-3 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-1 text-sm flex items-center justify-center min-h-[44px]"
-          >
-            View Details
-          </button>
+          <Link href={`/storefront/${vendor.user_id}`} className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-3 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-1 text-sm flex items-center justify-center min-h-[44px]">
+            Visit Storefront
+          </Link>
           <button
             onClick={() => onQuickOrder?.(vendor)}
             className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 text-sm flex items-center justify-center min-h-[44px]"

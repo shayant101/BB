@@ -76,11 +76,6 @@ async def get_current_user(authorization: str = Header(None)):
 @router.get("/categories", response_model=List[VendorCategoryResponse])
 async def get_vendor_categories(current_user: User = Depends(get_current_user)):
     """Get all vendor categories with vendor counts"""
-    if current_user.role != "restaurant":
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Only restaurants can access the marketplace"
-        )
     
     categories = await VendorCategory.find(VendorCategory.is_active == True).sort(+VendorCategory.sort_order).to_list()
     
@@ -114,11 +109,6 @@ async def get_marketplace_vendors(
     page_size: int = Query(12, ge=1, le=100, description="Items per page")
 ):
     """Get paginated list of vendors with filtering and search"""
-    if current_user.role != "restaurant":
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Only restaurants can access the marketplace"
-        )
 
     # Build the query
     query_conditions = [
@@ -181,11 +171,6 @@ async def get_vendor_detail(
     current_user: User = Depends(get_current_user)
 ):
     """Get detailed vendor information"""
-    if current_user.role != "restaurant":
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Only restaurants can access the marketplace"
-        )
 
     vendor = await User.find_one(User.user_id == user_id, User.role == "vendor")
 

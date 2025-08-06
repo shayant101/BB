@@ -97,7 +97,7 @@ export default function MarketplaceFilters({
           <div key={parentCategory} className="flex gap-1">
             {cats.slice(0, 3).map((category) => (
               <button
-                key={category.id}
+                key={category.category_id}
                 onClick={() => handleFilterChange('category', category.name)}
                 className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
                   filters.category === category.name
@@ -150,7 +150,7 @@ export default function MarketplaceFilters({
               {Object.entries(groupedCategories).map(([parentCategory, cats]) => (
                 <optgroup key={parentCategory} label={parentCategory}>
                   {cats.map((category) => (
-                    <option key={category.id} value={category.name}>
+                    <option key={category.category_id} value={category.name}>
                       {category.icon} {category.name} ({category.vendor_count})
                     </option>
                   ))}

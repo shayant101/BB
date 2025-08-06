@@ -8,6 +8,13 @@ from .mongo_models import (
 from .inventory_models import (
     InventoryCategory, InventoryItem, InventorySKU, InventoryCounter
 )
+from .storefront_models import (
+    VendorStorefront,
+    ProductCategory,
+    VendorProduct,
+    ShoppingCart,
+    CustomerWishlist
+)
 
 # MongoDB Atlas connection string from environment variables
 MONGODB_URL = os.getenv("MONGODB_URL", "mongodb+srv://shayanstoor:ZpzaX5Y4SJmP7e9d@clusterbb.gzjujes.mongodb.net/bistroboard?retryWrites=true&w=majority&appName=ClusterBB")
@@ -42,7 +49,12 @@ async def connect_to_mongo():
             document_models=[
                 User, Order, VendorCategory,
                 AdminAuditLog, UserEventLog, ImpersonationSession,
-                InventoryCategory, InventoryItem, InventorySKU, InventoryCounter
+                InventoryCategory, InventoryItem, InventorySKU, InventoryCounter,
+                VendorStorefront,
+                ProductCategory,
+                VendorProduct,
+                ShoppingCart,
+                CustomerWishlist
             ]
         )
         print("✅ Beanie initialized with document models")

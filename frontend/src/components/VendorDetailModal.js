@@ -181,7 +181,7 @@ export default function VendorDetailModal({ vendor, onClose, onCreateOrder }) {
                     >
                       Create Order
                     </button>
-                    {vendor.website_url && (
+                    {vendor.website_url && (vendor.website_url.startsWith('http') || vendor.website_url.startsWith('https')) && (
                       <a
                         href={vendor.website_url}
                         target="_blank"
