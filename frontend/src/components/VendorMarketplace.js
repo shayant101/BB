@@ -234,7 +234,7 @@ export default function VendorMarketplace({ onCreateOrder }) {
         }>
           {vendors.map((vendor) => (
             <VendorCard
-              key={vendor.user_id}
+              key={vendor.id}
               vendor={vendor}
               onQuickOrder={handleQuickOrder}
               compact={viewMode === 'list'}
