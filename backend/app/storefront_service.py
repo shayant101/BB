@@ -10,11 +10,17 @@ from .inventory_models import InventoryItem, InventorySKU
 
 class StorefrontService:
     @staticmethod
-    async def get_storefront_by_vendor_id(vendor_id: int) -> Optional[VendorStorefront]:
-        storefront = await VendorStorefront.find_one(VendorStorefront.vendor_id == vendor_id)
+    async def get_storefront_by_vendor_id(vendor_id: str) -> Optional[VendorStorefront]:
+        # First, find the vendor by their document ID to get their user_id
+        from .user_models import User  # Local import to avoid circular dependency
+        vendor = await User.get(vendor_id)
+        if not vendor:
+            return None
+
+        storefront = await VendorStorefront.find_one(VendorStorefront.vendor_id == vendor.user_id)
         if not storefront:
             # If no storefront exists, create a default one for the vendor
-            storefront = VendorStorefront(vendor_id=vendor_id)
+            storefront = VendorStorefront(vendor_id=vendor.user_id)
             await storefront.insert()
         return storefront
 

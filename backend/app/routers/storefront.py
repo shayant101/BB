@@ -12,7 +12,7 @@ from ..storefront_models import (
 router = APIRouter()
 
 @router.get("/storefront/{vendor_id}", response_model=StorefrontResponse)
-async def get_storefront(vendor_id: int):
+async def get_storefront(vendor_id: str):
     storefront = await StorefrontService.get_storefront_by_vendor_id(vendor_id)
     if not storefront:
         raise HTTPException(status_code=404, detail="Storefront not found")

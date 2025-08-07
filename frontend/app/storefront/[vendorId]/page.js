@@ -13,7 +13,7 @@ export default function VendorStorefront() {
   const { addToCart, cartItems } = useCart();
 
   useEffect(() => {
-    if (vendorId) {
+    if (vendorId && typeof vendorId === 'string' && vendorId !== 'undefined') {
       const fetchStorefrontData = async () => {
         try {
           const [storefrontRes, productsRes] = await Promise.all([
