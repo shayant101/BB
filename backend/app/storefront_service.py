@@ -25,36 +25,49 @@ class StorefrontService:
         return storefront
 
     @staticmethod
-    async def update_storefront(vendor_id: int, storefront_update: StorefrontUpdate) -> Optional[VendorStorefront]:
-        storefront = await VendorStorefront.find_one(VendorStorefront.vendor_id == vendor_id)
+    async def update_storefront(vendor_id: str, storefront_update: StorefrontUpdate) -> Optional[VendorStorefront]:
+        storefront = await StorefrontService.get_storefront_by_vendor_id(vendor_id)
         if storefront:
             update_data = storefront_update.dict(exclude_unset=True)
             await storefront.update({"$set": update_data})
-            return await VendorStorefront.find_one(VendorStorefront.vendor_id == vendor_id)
+            return await StorefrontService.get_storefront_by_vendor_id(vendor_id)
         return None
 
     @staticmethod
-    async def create_product_category(vendor_id: int, category_create: ProductCategoryCreate) -> ProductCategory:
-        category = ProductCategory(vendor_id=vendor_id, **category_create.dict())
+    async def create_product_category(vendor_id: str, category_create: ProductCategoryCreate) -> ProductCategory:
+        storefront = await StorefrontService.get_storefront_by_vendor_id(vendor_id)
+        if not storefront:
+            return None
+        category = ProductCategory(vendor_id=storefront.vendor_id, **category_create.dict())
         await category.insert()
         return category
 
     @staticmethod
-    async def get_product_categories_by_vendor(vendor_id: int) -> List[ProductCategory]:
-        return await ProductCategory.find(ProductCategory.vendor_id == vendor_id).to_list()
+    async def get_product_categories_by_vendor(vendor_id: str) -> List[ProductCategory]:
+        storefront = await StorefrontService.get_storefront_by_vendor_id(vendor_id)
+        if not storefront:
+            return []
+        return await ProductCategory.find(ProductCategory.vendor_id == storefront.vendor_id).to_list()
 
     @staticmethod
-    async def create_vendor_product(vendor_id: int, product_create: VendorProductCreate) -> VendorProduct:
-        product = VendorProduct(vendor_id=vendor_id, **product_create.dict())
+    @staticmethod
+    async def create_vendor_product(vendor_id: str, product_create: VendorProductCreate) -> VendorProduct:
+        storefront = await StorefrontService.get_storefront_by_vendor_id(vendor_id)
+        if not storefront:
+            return None
+        product = VendorProduct(vendor_id=storefront.vendor_id, **product_create.dict())
         await product.insert()
         return product
 
     @staticmethod
-    async def get_vendor_products(vendor_id: int) -> List[dict]:
+    async def get_vendor_products(vendor_id: str) -> List[dict]:
         """Get vendor's actual inventory items for storefront display"""
+        storefront = await StorefrontService.get_storefront_by_vendor_id(vendor_id)
+        if not storefront:
+            return []
         # Get all active inventory items for this vendor
         inventory_items = await InventoryItem.find(
-            InventoryItem.vendor_id == vendor_id,
+            InventoryItem.vendor_id == storefront.vendor_id,
             InventoryItem.is_active == True
         ).to_list()
         
@@ -112,38 +125,50 @@ class StorefrontService:
         return products
 
     @staticmethod
-    async def get_cart(restaurant_id: int, vendor_id: int) -> Optional[ShoppingCart]:
+    async def get_cart(restaurant_id: int, vendor_id: str) -> Optional[ShoppingCart]:
+        storefront = await StorefrontService.get_storefront_by_vendor_id(vendor_id)
+        if not storefront:
+            return None
         return await ShoppingCart.find_one(
             ShoppingCart.restaurant_id == restaurant_id,
-            ShoppingCart.vendor_id == vendor_id
+            ShoppingCart.vendor_id == storefront.vendor_id
         )
 
     @staticmethod
-    async def update_cart(restaurant_id: int, vendor_id: int, items: List[ShoppingCartItem]) -> ShoppingCart:
+    async def update_cart(restaurant_id: int, vendor_id: str, items: List[ShoppingCartItem]) -> ShoppingCart:
+        storefront = await StorefrontService.get_storefront_by_vendor_id(vendor_id)
+        if not storefront:
+            return None
         cart = await ShoppingCart.find_one(
             ShoppingCart.restaurant_id == restaurant_id,
-            ShoppingCart.vendor_id == vendor_id
+            ShoppingCart.vendor_id == storefront.vendor_id
         )
         if not cart:
-            cart = ShoppingCart(restaurant_id=restaurant_id, vendor_id=vendor_id)
+            cart = ShoppingCart(restaurant_id=restaurant_id, vendor_id=storefront.vendor_id)
         
         cart.items = items
         await cart.save()
         return cart
 
     @staticmethod
-    async def add_to_wishlist(restaurant_id: int, vendor_id: int, product_id: int) -> CustomerWishlist:
+    async def add_to_wishlist(restaurant_id: int, vendor_id: str, product_id: int) -> CustomerWishlist:
+        storefront = await StorefrontService.get_storefront_by_vendor_id(vendor_id)
+        if not storefront:
+            return None
         wishlist_item = CustomerWishlist(
             restaurant_id=restaurant_id,
-            vendor_id=vendor_id,
+            vendor_id=storefront.vendor_id,
             product_id=product_id
         )
         await wishlist_item.insert()
         return wishlist_item
 
     @staticmethod
-    async def get_wishlist(restaurant_id: int, vendor_id: int) -> List[CustomerWishlist]:
+    async def get_wishlist(restaurant_id: int, vendor_id: str) -> List[CustomerWishlist]:
+        storefront = await StorefrontService.get_storefront_by_vendor_id(vendor_id)
+        if not storefront:
+            return []
         return await CustomerWishlist.find(
             CustomerWishlist.restaurant_id == restaurant_id,
-            CustomerWishlist.vendor_id == vendor_id
+            CustomerWishlist.vendor_id == storefront.vendor_id
         ).to_list()
