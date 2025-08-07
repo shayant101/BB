@@ -2,6 +2,8 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Header, Query
 from pydantic import BaseModel
 from ..mongo_models import User, VendorCategory
+from beanie import PydanticObjectId
+from bson import ObjectId
 from ..auth_simple import verify_token, TokenData
 from datetime import datetime
 import math
@@ -19,6 +21,7 @@ class VendorCategoryResponse(BaseModel):
     vendor_count: int = 0
 
 class VendorListingResponse(BaseModel):
+    id: PydanticObjectId
     user_id: int
     name: str
     email: str
@@ -39,6 +42,13 @@ class VendorListingResponse(BaseModel):
     website_url: Optional[str] = None
     established_year: Optional[str] = None
     categories: List[str] = []
+
+    class Config:
+        arbitrary_types_allowed = True
+        json_encoders = {
+            ObjectId: str,
+            PydanticObjectId: str
+        }
 
 class VendorDetailResponse(VendorListingResponse):
     gallery_images: List[str] = []
@@ -145,6 +155,7 @@ async def get_marketplace_vendors(
     # Format response
     vendor_listings = [
         VendorListingResponse(
+            id=v.id,
             user_id=v.user_id,
             name=v.name,
             email=v.email,
@@ -181,6 +192,7 @@ async def get_vendor_detail(
         )
 
     return VendorDetailResponse(
+        id=vendor.id,
         user_id=vendor.user_id,
         name=vendor.name,
         email=vendor.email,

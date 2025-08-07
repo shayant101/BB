@@ -98,7 +98,7 @@ export default function VendorMarketplace({ onCreateOrder }) {
 
   const handleViewDetails = async (vendor) => {
     try {
-      const detailedVendor = await marketplaceAPI.getVendorDetail(vendor.id);
+      const detailedVendor = await marketplaceAPI.getVendorDetail(vendor.user_id);
       setSelectedVendor(detailedVendor);
       setShowDetailModal(true);
     } catch (error) {
