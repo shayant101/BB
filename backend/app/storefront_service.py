@@ -12,7 +12,7 @@ class StorefrontService:
     @staticmethod
     async def get_storefront_by_vendor_id(vendor_id: str) -> Optional[VendorStorefront]:
         # First, find the vendor by their document ID to get their user_id
-        from .user_models import User  # Local import to avoid circular dependency
+        from .mongo_models import User  # Local import to avoid circular dependency
         vendor = await User.get(vendor_id)
         if not vendor:
             return None
