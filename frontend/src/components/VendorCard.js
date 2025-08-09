@@ -234,7 +234,7 @@ export default function VendorCard({ vendor, onQuickOrder, compact = false }) {
       {/* Actions */}
       <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
         <div className="flex gap-3">
-          <Link href={`/storefront/${vendor.id}`} className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-3 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-1 text-sm flex items-center justify-center min-h-[44px]">
+          <Link href={`/storefront/${vendor.user_id}`} className="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-3 px-4 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-1 text-sm flex items-center justify-center min-h-[44px]">
             Visit Storefront
           </Link>
           <button

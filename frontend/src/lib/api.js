@@ -252,6 +252,11 @@ export const marketplaceAPI = {
   searchVendors: async (query) => {
     const response = await api.get(`/marketplace/search?q=${encodeURIComponent(query)}`);
     return response.data;
+  },
+  
+  comparePrices: async (comparisonRequest) => {
+    const response = await api.post('/marketplace/compare-prices', comparisonRequest);
+    return response.data;
   }
 };
 
@@ -405,5 +410,33 @@ export const inventoryAPI = {
     return response.data;
   }
 };
+// Storefront API
+export const storefrontAPI = {
+  getVendorProducts: async (vendorId) => {
+    const response = await api.get(`/storefront/${vendorId}/products`);
+    return response.data;
+  },
+
+  getCart: async (restaurantId) => {
+    const response = await api.get(`/storefront/cart/${restaurantId}`);
+    return response.data;
+  },
+
+  updateCart: async (restaurantId, cartData) => {
+    const response = await api.post(`/storefront/cart/${restaurantId}`, cartData);
+    return response.data;
+  },
+
+  addToWishlist: async (restaurantId, skuId) => {
+    const response = await api.post(`/storefront/wishlist/${restaurantId}`, { sku_id: skuId });
+    return response.data;
+  },
+
+  getWishlist: async (restaurantId) => {
+    const response = await api.get(`/storefront/wishlist/${restaurantId}`);
+    return response.data;
+  },
+};
+
 
 export default api;

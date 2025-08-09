@@ -10,10 +10,10 @@ from .inventory_models import InventoryItem, InventorySKU
 
 class StorefrontService:
     @staticmethod
-    async def get_storefront_by_vendor_id(vendor_id: str) -> Optional[VendorStorefront]:
-        # First, find the vendor by their document ID to get their user_id
+    async def get_storefront_by_vendor_id(vendor_id: str) -> Optional[dict]:
+        # First, find the vendor by their user_id (not document _id)
         from .mongo_models import User  # Local import to avoid circular dependency
-        vendor = await User.get(vendor_id)
+        vendor = await User.find_one(User.user_id == int(vendor_id))
         if not vendor:
             return None
 
@@ -22,11 +22,21 @@ class StorefrontService:
             # If no storefront exists, create a default one for the vendor
             storefront = VendorStorefront(vendor_id=vendor.user_id)
             await storefront.insert()
-        return storefront
+        
+        # Return storefront data with business name from vendor
+        storefront_dict = storefront.dict()
+        storefront_dict['business_name'] = vendor.name
+        return storefront_dict
 
     @staticmethod
-    async def update_storefront(vendor_id: str, storefront_update: StorefrontUpdate) -> Optional[VendorStorefront]:
-        storefront = await StorefrontService.get_storefront_by_vendor_id(vendor_id)
+    async def update_storefront(vendor_id: str, storefront_update: StorefrontUpdate) -> Optional[dict]:
+        # Get the actual storefront document for updating
+        from .mongo_models import User  # Local import to avoid circular dependency
+        vendor = await User.find_one(User.user_id == int(vendor_id))
+        if not vendor:
+            return None
+
+        storefront = await VendorStorefront.find_one(VendorStorefront.vendor_id == vendor.user_id)
         if storefront:
             update_data = storefront_update.dict(exclude_unset=True)
             await storefront.update({"$set": update_data})
@@ -38,7 +48,7 @@ class StorefrontService:
         storefront = await StorefrontService.get_storefront_by_vendor_id(vendor_id)
         if not storefront:
             return None
-        category = ProductCategory(vendor_id=storefront.vendor_id, **category_create.dict())
+        category = ProductCategory(vendor_id=storefront['vendor_id'], **category_create.dict())
         await category.insert()
         return category
 
@@ -47,7 +57,7 @@ class StorefrontService:
         storefront = await StorefrontService.get_storefront_by_vendor_id(vendor_id)
         if not storefront:
             return []
-        return await ProductCategory.find(ProductCategory.vendor_id == storefront.vendor_id).to_list()
+        return await ProductCategory.find(ProductCategory.vendor_id == storefront['vendor_id']).to_list()
 
     @staticmethod
     @staticmethod
@@ -55,7 +65,7 @@ class StorefrontService:
         storefront = await StorefrontService.get_storefront_by_vendor_id(vendor_id)
         if not storefront:
             return None
-        product = VendorProduct(vendor_id=storefront.vendor_id, **product_create.dict())
+        product = VendorProduct(vendor_id=storefront['vendor_id'], **product_create.dict())
         await product.insert()
         return product
 
@@ -67,7 +77,7 @@ class StorefrontService:
             return []
         # Get all active inventory items for this vendor
         inventory_items = await InventoryItem.find(
-            InventoryItem.vendor_id == storefront.vendor_id,
+            InventoryItem.vendor_id == storefront['vendor_id'],
             InventoryItem.is_active == True
         ).to_list()
         
@@ -131,7 +141,7 @@ class StorefrontService:
             return None
         return await ShoppingCart.find_one(
             ShoppingCart.restaurant_id == restaurant_id,
-            ShoppingCart.vendor_id == storefront.vendor_id
+            ShoppingCart.vendor_id == storefront['vendor_id']
         )
 
     @staticmethod
@@ -141,10 +151,10 @@ class StorefrontService:
             return None
         cart = await ShoppingCart.find_one(
             ShoppingCart.restaurant_id == restaurant_id,
-            ShoppingCart.vendor_id == storefront.vendor_id
+            ShoppingCart.vendor_id == storefront['vendor_id']
         )
         if not cart:
-            cart = ShoppingCart(restaurant_id=restaurant_id, vendor_id=storefront.vendor_id)
+            cart = ShoppingCart(restaurant_id=restaurant_id, vendor_id=storefront['vendor_id'])
         
         cart.items = items
         await cart.save()
@@ -157,7 +167,7 @@ class StorefrontService:
             return None
         wishlist_item = CustomerWishlist(
             restaurant_id=restaurant_id,
-            vendor_id=storefront.vendor_id,
+            vendor_id=storefront['vendor_id'],
             product_id=product_id
         )
         await wishlist_item.insert()
@@ -170,5 +180,5 @@ class StorefrontService:
             return []
         return await CustomerWishlist.find(
             CustomerWishlist.restaurant_id == restaurant_id,
-            CustomerWishlist.vendor_id == storefront.vendor_id
+            CustomerWishlist.vendor_id == storefront['vendor_id']
         ).to_list()

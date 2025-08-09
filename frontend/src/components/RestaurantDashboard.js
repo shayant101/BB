@@ -14,7 +14,8 @@ import {
   ExclamationTriangleIcon,
   ClockIcon,
   CheckCircleIcon,
-  TruckIcon
+  TruckIcon,
+  ScaleIcon
 } from '@heroicons/react/24/outline';
 import { useRouter } from 'next/navigation';
 
@@ -165,6 +166,13 @@ export default function RestaurantDashboard({ user }) {
           >
             <UserIcon className="h-4 w-4 mr-2" />
             Profile
+          </button>
+          <button
+            onClick={() => router.push('/dashboard/compare')}
+            className="btn-secondary flex items-center"
+          >
+            <ScaleIcon className="h-4 w-4 mr-2" />
+            Compare Prices
           </button>
           <button
             onClick={() => setShowNewOrderForm(true)}

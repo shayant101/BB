@@ -32,6 +32,7 @@ class StorefrontUpdate(BaseModel):
 
 class StorefrontResponse(BaseModel):
     vendor_id: int
+    business_name: Optional[str] = None
     logo_url: Optional[str] = None
     hero_image_url: Optional[str] = None
     brand_colors: Dict[str, str]

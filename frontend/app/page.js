@@ -50,7 +50,7 @@ export default function LoginPage() {
       setUsername('restaurant1');
       setPassword('demo123');
     } else if (role === 'vendor') {
-      setUsername('vendor1');
+      setUsername('fresh_valley_farms');
       setPassword('demo123');
     } else if (role === 'admin') {
       setUsername('admin');

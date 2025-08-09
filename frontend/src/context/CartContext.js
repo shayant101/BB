@@ -53,9 +53,45 @@ export function CartProvider({ children }) {
     });
   };
 
+  const removeFromCart = (productId) => {
+    setCartItems(prevItems => prevItems.filter(item => item.product_id !== productId));
+  };
+
+  const updateQuantity = (productId, newQuantity) => {
+    if (newQuantity <= 0) {
+      removeFromCart(productId);
+      return;
+    }
+    
+    setCartItems(prevItems =>
+      prevItems.map(item =>
+        item.product_id === productId
+          ? { ...item, quantity: newQuantity }
+          : item
+      )
+    );
+  };
+
+  const clearCart = () => {
+    setCartItems([]);
+  };
+
+  const getCartTotal = () => {
+    return cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
+  };
+
+  const getCartItemCount = () => {
+    return cartItems.reduce((count, item) => count + item.quantity, 0);
+  };
+
   const value = {
     cartItems,
     addToCart,
+    removeFromCart,
+    updateQuantity,
+    clearCart,
+    getCartTotal,
+    getCartItemCount,
   };
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { marketplaceAPI } from '../lib/api';
+import Link from 'next/link';
 import VendorCard from './VendorCard';
 import MarketplaceFilters from './MarketplaceFilters';
 import VendorDetailModal from './VendorDetailModal';
@@ -233,12 +234,13 @@ export default function VendorMarketplace({ onCreateOrder }) {
             : 'space-y-4'
         }>
           {vendors.map((vendor) => (
-            <VendorCard
-              key={vendor.id}
-              vendor={vendor}
-              onQuickOrder={handleQuickOrder}
-              compact={viewMode === 'list'}
-            />
+            <Link key={vendor.user_id} href={`/storefront/${vendor.user_id}`}>
+              <VendorCard
+                vendor={vendor}
+                onQuickOrder={handleQuickOrder}
+                compact={viewMode === 'list'}
+              />
+            </Link>
           ))}
         </div>
       )}
