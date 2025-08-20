@@ -1,21 +1,48 @@
 import axios from 'axios';
 
+// API Configuration with robust fallback and validation
 let API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
-// In a production environment, the API URL must be set.
-// This prevents deploying a broken frontend.
-if (process.env.NODE_ENV === 'production' && !API_BASE_URL) {
-  console.error('FATAL: NEXT_PUBLIC_API_URL environment variable is not set for production.');
-  // Note: This will cause an error, but a visible one.
-  // In a real CI/CD pipeline, you'd want the build to fail here.
-  API_BASE_URL = ''; // Set to empty to ensure requests fail visibly.
+// Validate and set API URL with proper error handling
+function validateAndSetApiUrl() {
+  // In production, API URL is required
+  if (process.env.NODE_ENV === 'production' && !API_BASE_URL) {
+    const error = 'FATAL: NEXT_PUBLIC_API_URL environment variable is not set for production.';
+    console.error(error);
+    throw new Error(error);
+  }
+
+  // For development, provide a robust fallback
+  if (!API_BASE_URL) {
+    API_BASE_URL = 'http://localhost:8000/api';
+    console.warn(`⚠️ NEXT_PUBLIC_API_URL not set, defaulting to ${API_BASE_URL}`);
+  }
+
+  // Ensure API URL ends with /api for consistency
+  if (!API_BASE_URL.endsWith('/api')) {
+    if (API_BASE_URL.endsWith('/')) {
+      API_BASE_URL = API_BASE_URL + 'api';
+    } else {
+      API_BASE_URL = API_BASE_URL + '/api';
+    }
+    console.info(`🔧 API URL normalized to: ${API_BASE_URL}`);
+  }
+
+  // Validate URL format
+  try {
+    new URL(API_BASE_URL);
+    console.info(`✅ API Base URL configured: ${API_BASE_URL}`);
+  } catch (error) {
+    const errorMsg = `❌ Invalid API URL format: ${API_BASE_URL}`;
+    console.error(errorMsg);
+    throw new Error(errorMsg);
+  }
+
+  return API_BASE_URL;
 }
 
-// For local development, we can default to localhost.
-if (!API_BASE_URL) {
-  API_BASE_URL = 'http://localhost:8000/api';
-  console.warn(`⚠️ NEXT_PUBLIC_API_URL not set, defaulting to ${API_BASE_URL}`);
-}
+// Initialize API URL with validation
+API_BASE_URL = validateAndSetApiUrl();
 
 // Create axios instance with default config
 const api = axios.create({
@@ -127,22 +154,82 @@ api.interceptors.request.use(
   }
 );
 
-// Response interceptor to handle auth errors
+// Response interceptor to handle auth errors and API connectivity
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    // Handle authentication errors
     if (error.response?.status === 401) {
       removeAuthToken();
       window.location.href = '/';
     }
+    
+    // Handle API connectivity issues
+    if (!error.response) {
+      console.error('❌ API Connection Error:', {
+        message: error.message,
+        code: error.code,
+        config: {
+          url: error.config?.url,
+          method: error.config?.method,
+          baseURL: error.config?.baseURL
+        }
+      });
+      
+      // Check if it's a network error to the API
+      if (error.code === 'ECONNREFUSED' || error.code === 'ERR_NETWORK') {
+        console.error(`🚨 Backend server appears to be down. Check if server is running on ${API_BASE_URL}`);
+      }
+    }
+    
     return Promise.reject(error);
   }
 );
+
+// API Health Check Function
+export const checkApiHealth = async () => {
+  try {
+    // Remove /api from base URL for health check since it's at root level
+    const healthUrl = API_BASE_URL.replace('/api', '/health');
+    const response = await axios.get(healthUrl, { timeout: 5000 });
+    console.log('✅ API Health Check Passed:', response.data);
+    return { healthy: true, data: response.data };
+  } catch (error) {
+    console.error('❌ API Health Check Failed:', error.message);
+    return {
+      healthy: false,
+      error: error.message,
+      suggestion: `Ensure backend server is running on ${API_BASE_URL.replace('/api', '')}`
+    };
+  }
+};
+
+// Initialize API health check in development
+if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+  // Run health check after a short delay to allow server startup
+  setTimeout(async () => {
+    const health = await checkApiHealth();
+    if (!health.healthy) {
+      console.warn('⚠️ Backend server health check failed. Some features may not work properly.');
+    }
+  }, 2000);
+}
 
 // Auth API
 export const authAPI = {
   login: async (username, password) => {
     const response = await api.post('/auth/login', { username, password });
+    return response.data;
+  },
+  
+  // Email-based authentication endpoints
+  emailLogin: async (email, password) => {
+    const response = await api.post('/auth/email/login', { email, password });
+    return response.data;
+  },
+  
+  register: async (userData) => {
+    const response = await api.post('/auth/email/register', userData);
     return response.data;
   },
   

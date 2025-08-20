@@ -6,6 +6,7 @@ from fastapi import HTTPException, status
 from .mongo_models import User
 from datetime import datetime
 import logging
+import asyncio
 
 logger = logging.getLogger(__name__)
 
@@ -175,6 +176,16 @@ class GoogleOAuthService:
         
         await new_user.save()
         logger.info(f"Created new user from Google OAuth: {google_email}")
+        
+        # Send welcome email in background
+        try:
+            from .email_service import EmailService
+            email_service = EmailService()
+            # Use asyncio.create_task to run in background without blocking
+            asyncio.create_task(email_service.send_welcome_email(new_user))
+        except Exception as e:
+            logger.error(f"Failed to queue welcome email for {google_email}: {str(e)}")
+        
         return new_user
     
     @staticmethod

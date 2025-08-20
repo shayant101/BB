@@ -3,7 +3,7 @@ from beanie import init_beanie
 import os
 from .mongo_models import (
     User, Order, VendorCategory, AdminAuditLog,
-    UserEventLog, ImpersonationSession
+    UserEventLog, ImpersonationSession, EmailTemplate, EmailLog
 )
 from .inventory_models import (
     InventoryCategory, InventoryItem, InventorySKU, InventoryCounter
@@ -49,6 +49,7 @@ async def connect_to_mongo():
             document_models=[
                 User, Order, VendorCategory,
                 AdminAuditLog, UserEventLog, ImpersonationSession,
+                EmailTemplate, EmailLog,
                 InventoryCategory, InventoryItem, InventorySKU, InventoryCounter,
                 VendorStorefront,
                 ProductCategory,

@@ -1,9 +1,10 @@
 from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, status, Header
+from fastapi import APIRouter, Depends, HTTPException, status, Header, BackgroundTasks
 from pydantic import BaseModel
 from ..mongo_models import User, Order, RestaurantInfo, VendorInfo
 from ..auth_simple import verify_token
 from datetime import datetime
+import asyncio
 
 router = APIRouter()
 
@@ -51,7 +52,8 @@ async def get_current_user(authorization: str = Header(None)):
 
 @router.post("/orders", response_model=OrderResponse)
 async def create_order(
-    order_data: OrderCreate, 
+    order_data: OrderCreate,
+    background_tasks: BackgroundTasks,
     current_user: User = Depends(get_current_user)
 ):
     if current_user.role != "restaurant":
@@ -82,6 +84,40 @@ async def create_order(
     )
     
     await new_order.insert()
+    
+    # Send email notifications in background
+    try:
+        from ..email_service import EmailService
+        email_service = EmailService()
+        
+        # Send new order notification to vendor
+        background_tasks.add_task(
+            email_service.send_new_order_notification,
+            {
+                "order": new_order.dict(),
+                "vendor_email": vendor.email,
+                "vendor_name": vendor.name,
+                "restaurant_name": current_user.name
+            }
+        )
+        
+        # Send order confirmation to restaurant
+        background_tasks.add_task(
+            email_service.send_order_confirmation,
+            {
+                "order": new_order.dict(),
+                "restaurant_email": current_user.email,
+                "restaurant_name": current_user.name,
+                "vendor_name": vendor.name
+            }
+        )
+        
+    except Exception as e:
+        # Log error but don't fail the order creation
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Failed to queue order notification emails: {str(e)}")
+    
     return OrderResponse(**new_order.dict())
 
 @router.get("/orders", response_model=List[OrderResponse])
