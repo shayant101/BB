@@ -5,6 +5,7 @@ import { Dialog, Transition } from '@headlessui/react';
 import { XMarkIcon, MinusIcon, PlusIcon, ShoppingCartIcon } from '@heroicons/react/24/outline';
 import { useCart } from '../context/CartContext';
 import { useParams } from 'next/navigation';
+import api from '../lib/api';
 
 export default function CartModal({ isOpen, onClose }) {
   const { cartItems, removeFromCart, updateQuantity, getCartTotal, clearCart } = useCart();
@@ -36,38 +37,49 @@ export default function CartModal({ isOpen, onClose }) {
       // Format cart data to match OrderCreate API model
       const orderData = {
         vendor_id: parseInt(vendorId),
-        restaurant_id: 1, // Hardcoded as per instructions
         items: cartItems.map(item => ({
           product_id: String(item.product_id || item.id || ''), // API expects string, handle various field names
+          name: item.name || 'Unknown Product', // Include product name for display
           quantity: item.quantity,
           price: item.price
         }))
       };
 
-      // Make POST request to the orders endpoint
-      const response = await fetch('http://localhost:8000/api/storefront/orders', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(orderData),
-      });
+      console.log('🔍 Cart - Placing order with data:', orderData);
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || 'Failed to place order');
-      }
-
-      const result = await response.json();
+      // Use the configured API client with Clerk authentication
+      const response = await api.post('/storefront/orders', orderData);
+      
+      console.log('🔍 Cart - Order response:', response.data);
       
       // Success: show notification, clear cart, close modal
-      alert(`Order placed successfully! Order ID: ${result.order_id}`);
+      alert(`Order placed successfully! Order ID: ${response.data.order_id}`);
       clearCart();
       onClose();
 
     } catch (error) {
-      console.error('Error placing order:', error);
-      setOrderError(error.message || 'Failed to place order. Please try again.');
+      console.error('❌ Cart - Error placing order:', error);
+      
+      // Handle different error formats
+      let errorMessage = 'Failed to place order. Please try again.';
+      
+      if (error.response?.data) {
+        const errorData = error.response.data;
+        if (typeof errorData.detail === 'string') {
+          errorMessage = errorData.detail;
+        } else if (Array.isArray(errorData.detail)) {
+          // Handle validation errors array
+          errorMessage = errorData.detail.map(err =>
+            typeof err === 'string' ? err : err.msg || 'Validation error'
+          ).join(', ');
+        } else if (errorData.message) {
+          errorMessage = errorData.message;
+        }
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      setOrderError(errorMessage);
     } finally {
       setIsPlacingOrder(false);
     }

@@ -3,44 +3,37 @@ console.log("--- Rendering DashboardPage ---");
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { getUser, getAuthToken, removeAuthToken } from '../../src/lib/api';
+import { useUser, useClerk } from '@clerk/nextjs';
 import RestaurantDashboard from '../../src/components/RestaurantDashboard';
 import VendorDashboard from '../../src/components/VendorDashboard';
 
 export default function Dashboard() {
-  const [user, setUser] = useState(null);
+  const { isLoaded, isSignedIn, user } = useUser();
+  const { signOut } = useClerk();
+  const [userRole, setUserRole] = useState(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
-    const initializeAuth = async () => {
-      const token = getAuthToken();
-      const userData = getUser();
-
-      if (!token || !userData) {
+    if (isLoaded) {
+      if (!isSignedIn) {
         router.push('/');
         return;
       }
 
-      // Ensure token is set in axios instance before proceeding
-      if (token) {
-        const api = (await import('../../src/lib/api')).default;
-        api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      }
-
-      setUser(userData);
+      // For now, we'll use a default role since we need to implement role management
+      // In a real app, you'd fetch this from your backend or store it in Clerk metadata
+      setUserRole('restaurant'); // Default role for testing
       setLoading(false);
-    };
+    }
+  }, [isLoaded, isSignedIn, router]);
 
-    initializeAuth();
-  }, [router]);
-
-  const handleLogout = () => {
-    removeAuthToken();
+  const handleLogout = async () => {
+    await signOut();
     router.push('/');
   };
 
-  if (loading) {
+  if (loading || !isLoaded) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -51,7 +44,7 @@ export default function Dashboard() {
     );
   }
 
-  if (!user) {
+  if (!isSignedIn || !user) {
     return null;
   }
 
@@ -64,11 +57,11 @@ export default function Dashboard() {
             <div className="flex items-center">
               <h1 className="text-2xl font-bold text-gray-900">BistroBoard</h1>
               <span className="ml-4 px-3 py-1 bg-primary text-white text-sm rounded-full">
-                {user.role === 'restaurant' ? 'Restaurant' : 'Vendor'}
+                {userRole === 'restaurant' ? 'Restaurant' : 'Vendor'}
               </span>
             </div>
             <div className="flex items-center space-x-4">
-              <span className="text-gray-700">Welcome, {user.name}</span>
+              <span className="text-gray-700">Welcome, {user.firstName || user.emailAddresses[0]?.emailAddress}</span>
               <button
                 onClick={handleLogout}
                 className="btn-secondary"
@@ -82,10 +75,10 @@ export default function Dashboard() {
 
       {/* Dashboard Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {user.role === 'restaurant' ? (
-          <RestaurantDashboard user={user} />
+        {userRole === 'restaurant' ? (
+          <RestaurantDashboard user={{ ...user, role: userRole }} />
         ) : (
-          <VendorDashboard user={user} />
+          <VendorDashboard user={{ ...user, role: userRole }} />
         )}
       </main>
     </div>

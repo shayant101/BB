@@ -2,37 +2,44 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useUser, useClerk } from '@clerk/nextjs';
 import VendorMarketplace from '../../src/components/VendorMarketplace';
-import { getUser } from '../../src/lib/api';
 
 export default function MarketplacePage() {
-  const [user, setUser] = useState(null);
+  const { isLoaded, isSignedIn, user } = useUser();
+  const { signOut } = useClerk();
+  const [userRole, setUserRole] = useState(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
-    const userData = getUser();
-    if (!userData) {
-      router.push('/');
-      return;
+    if (isLoaded) {
+      if (!isSignedIn) {
+        router.push('/');
+        return;
+      }
+      
+      // For now, we'll use a default role since we need to implement role management
+      // In a real app, you'd fetch this from your backend or store it in Clerk metadata
+      const role = 'restaurant'; // Default role for testing
+      
+      // Only restaurants can access marketplace
+      if (role !== 'restaurant') {
+        router.push('/dashboard');
+        return;
+      }
+      
+      setUserRole(role);
+      setLoading(false);
     }
-    
-    // Only restaurants can access marketplace
-    if (userData.role !== 'restaurant') {
-      router.push('/dashboard');
-      return;
-    }
-    
-    setUser(userData);
-    setLoading(false);
-  }, [router]);
+  }, [isLoaded, isSignedIn, router]);
 
   const handleCreateOrder = (vendor) => {
     // Navigate to dashboard with vendor pre-selected for order creation
     router.push(`/dashboard?create_order=true&vendor_id=${vendor.user_id}`);
   };
 
-  if (loading) {
+  if (loading || !isLoaded) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -43,7 +50,7 @@ export default function MarketplacePage() {
     );
   }
 
-  if (!user) {
+  if (!isSignedIn || !user) {
     return null;
   }
 
@@ -68,12 +75,11 @@ export default function MarketplacePage() {
             
             <div className="flex items-center space-x-4">
               <span className="text-sm text-gray-600">
-                Welcome, {user.name}
+                Welcome, {user.firstName || user.emailAddresses[0]?.emailAddress}
               </span>
               <button
-                onClick={() => {
-                  localStorage.removeItem('token');
-                  localStorage.removeItem('user');
+                onClick={async () => {
+                  await signOut();
                   router.push('/');
                 }}
                 className="text-sm text-gray-600 hover:text-gray-900"

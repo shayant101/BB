@@ -43,7 +43,11 @@ class User(Document):
     google_email: Optional[str] = None  # Google email (may differ from primary email)
     google_name: Optional[str] = None  # Google display name
     google_picture: Optional[str] = None  # Google profile picture URL
-    auth_provider: str = "local"  # "local", "google", or "both"
+    
+    # Clerk OAuth fields
+    clerk_user_id: Optional[str] = None  # Clerk user ID
+    
+    auth_provider: str = "local"  # "local", "google", "clerk", or "both"
     
     # Admin fields
     is_active: bool = True

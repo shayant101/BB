@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { getUser, getAuthToken } from '../../../src/lib/api';
+import { useUser } from '@clerk/nextjs';
 import PriceComparisonTool from '../../../src/components/PriceComparisonTool';
 import {
   ArrowLeftIcon,
@@ -10,32 +10,30 @@ import {
 } from '@heroicons/react/24/outline';
 
 export default function ComparePage() {
+  const { isLoaded, isSignedIn, user: clerkUser } = useUser();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
-    const initializeAuth = async () => {
-      const token = getAuthToken();
-      const userData = getUser();
-
-      if (!token || !userData) {
+    if (isLoaded) {
+      if (!isSignedIn) {
         router.push('/');
         return;
       }
 
-      // Ensure token is set in axios instance before proceeding
-      if (token) {
-        const api = (await import('../../../src/lib/api')).default;
-        api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      }
+      // Create user object from Clerk data
+      const userData = {
+        id: clerkUser.id,
+        name: clerkUser.fullName || clerkUser.firstName || 'User',
+        email: clerkUser.primaryEmailAddress?.emailAddress || '',
+        role: 'restaurant' // Default role for now
+      };
 
       setUser(userData);
       setLoading(false);
-    };
-
-    initializeAuth();
-  }, [router]);
+    }
+  }, [isLoaded, isSignedIn, clerkUser, router]);
 
   if (loading) {
     return (

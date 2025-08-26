@@ -1,5 +1,5 @@
 import './globals.css'
-import AuthInitializer from '../src/components/AuthInitializer';
+import { ClerkProvider } from '@clerk/nextjs'
 import { CartProvider } from '../src/context/CartContext';
 
 export const metadata = {
@@ -9,13 +9,14 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
-      <body className="bg-gray-50 min-h-screen">
-        <AuthInitializer />
-        <CartProvider>
-          {children}
-        </CartProvider>
-      </body>
-    </html>
+    <ClerkProvider>
+      <html lang="en">
+        <body className="bg-gray-50 min-h-screen">
+          <CartProvider>
+            {children}
+          </CartProvider>
+        </body>
+      </html>
+    </ClerkProvider>
   )
 }

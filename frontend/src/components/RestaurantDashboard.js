@@ -37,37 +37,27 @@ export default function RestaurantDashboard({ user }) {
   const [actionItems, setActionItems] = useState([]);
 
   useEffect(() => {
-    // Ensure token is properly set before loading data
-    const initializeAndLoadData = async () => {
-      const token = localStorage.getItem('token');
-      if (token) {
-        // Import api module and ensure token is set in axios instance
-        const api = (await import('../lib/api')).default;
-        api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-        
-        // Small delay to ensure token is properly set
-        await new Promise(resolve => setTimeout(resolve, 100));
-      }
-      
-      loadData();
-    };
-    
-    initializeAndLoadData();
+    loadData();
   }, []);
 
   const loadData = async () => {
     try {
-      // Double-check token is set before making API calls
-      const token = localStorage.getItem('token');
-      if (token) {
-        const api = (await import('../lib/api')).default;
-        api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      }
+      console.log('🔍 Loading dashboard data...');
       
+      // Load real orders and vendors data
       const [ordersData, vendorsData] = await Promise.all([
-        ordersAPI.getOrders(),
-        profilesAPI.getVendors()
+        ordersAPI.getOrders().catch(error => {
+          console.error('❌ Error loading orders:', error);
+          return []; // Fallback to empty array if API fails
+        }),
+        profilesAPI.getVendors().catch(error => {
+          console.error('❌ Error loading vendors:', error);
+          return []; // Fallback to empty array if API fails
+        })
       ]);
+      
+      console.log('✅ Orders loaded:', ordersData);
+      console.log('✅ Vendors loaded:', vendorsData);
       
       setOrders(ordersData);
       setVendors(vendorsData);

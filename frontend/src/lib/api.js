@@ -120,30 +120,64 @@ export const getUser = () => {
 // Token initialization is now handled in a client-side component
 // to ensure it only runs in the browser.
 
-// Request interceptor to add token - Enhanced with debugging
+// Request interceptor to add Clerk auth token
 api.interceptors.request.use(
-  (config) => {
-    const token = getAuthToken();
+  async (config) => {
+    console.log('🔍 API Request Interceptor triggered for:', config.url);
     
-    // Debug logging
-    console.log('🔍 API Request Interceptor:', {
-      url: config.url,
-      method: config.method,
-      hasToken: !!token,
-      tokenPreview: token ? `${token.substring(0, 20)}...` : 'No token',
-      headers: config.headers
-    });
-    
-    if (token) {
-      // Set both Authorization header and ensure it's in the config
-      config.headers.Authorization = `Bearer ${token}`;
-      config.headers['Authorization'] = `Bearer ${token}`;
+    try {
+      // Check if we're in browser environment and Clerk is available
+      if (typeof window !== 'undefined' && window.Clerk) {
+        console.log('🔍 Clerk is available, checking user state...');
+        
+        // Check if user is signed in
+        const user = window.Clerk.user;
+        console.log('🔍 User state:', {
+          hasUser: !!user,
+          userId: user?.id,
+          isSignedIn: !!user
+        });
+        
+        if (user) {
+          // Try to get session and token
+          const session = window.Clerk.session;
+          console.log('🔍 Session state:', {
+            hasSession: !!session,
+            sessionId: session?.id
+          });
+          
+          if (session) {
+            console.log('🔍 Attempting to get token...');
+            const token = await session.getToken();
+            console.log('🔍 Token result:', {
+              hasToken: !!token,
+              tokenLength: token?.length,
+              tokenPreview: token ? `${token.substring(0, 20)}...` : 'No token'
+            });
+            
+            if (token) {
+              config.headers.Authorization = `Bearer ${token}`;
+              console.log('✅ Authorization header set for:', config.url);
+              return config;
+            } else {
+              console.log('❌ Failed to get token from session');
+            }
+          } else {
+            console.log('❌ No session available');
+          }
+        } else {
+          console.log('❌ No user signed in');
+        }
+      } else {
+        console.log('❌ Clerk not available in window');
+      }
       
-      // Also ensure it's in the default headers
-      api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      console.log('✅ Token attached to request:', config.url);
-    } else {
-      console.log('❌ No token available for request:', config.url);
+      console.log('⚠️ Proceeding without authentication token for:', config.url);
+    } catch (error) {
+      console.error('❌ Error in request interceptor:', {
+        error: error.message,
+        url: config.url
+      });
     }
     
     return config;
@@ -158,10 +192,21 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    // Handle authentication errors
+    // Handle authentication errors - TEMPORARILY DISABLED FOR DEBUGGING
     if (error.response?.status === 401) {
-      removeAuthToken();
-      window.location.href = '/';
+      console.error('🚨 401 AUTHENTICATION ERROR - Backend expects old JWT tokens but we\'re using Clerk!');
+      console.error('Error details:', {
+        url: error.config?.url,
+        method: error.config?.method,
+        headers: error.config?.headers,
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data
+      });
+      
+      // TEMPORARILY COMMENTED OUT TO PREVENT REDIRECTS DURING DEBUGGING
+      // removeAuthToken();
+      // window.location.href = '/';
     }
     
     // Handle API connectivity issues
@@ -233,20 +278,6 @@ export const authAPI = {
     return response.data;
   },
   
-  googleLogin: async (token, role = 'restaurant') => {
-    const response = await api.post('/auth/google', { token, role });
-    return response.data;
-  },
-  
-  updateGoogleUserRole: async (token, role) => {
-    const response = await api.put('/auth/google/role', { token, role });
-    return response.data;
-  },
-  
-  getGoogleConfig: async () => {
-    const response = await api.get('/auth/google/config');
-    return response.data;
-  },
   
   logout: async () => {
     try {

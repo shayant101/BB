@@ -5,6 +5,7 @@ from typing import List
 class OrderItemCreate(BaseModel):
     """Pydantic model for individual order items in storefront orders"""
     product_id: str
+    name: str  # Product name for display
     quantity: int
     price: float
 
@@ -12,7 +13,6 @@ class OrderItemCreate(BaseModel):
 class OrderCreate(BaseModel):
     """Pydantic model for creating orders from vendor storefront"""
     vendor_id: int
-    restaurant_id: int
     items: List[OrderItemCreate]
 
 
