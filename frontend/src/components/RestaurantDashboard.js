@@ -193,7 +193,7 @@ export default function RestaurantDashboard({ user }) {
           
           <div className="space-y-3">
             {actionItems.map((order, index) => (
-              <div key={order.id} className="bg-white rounded-xl p-4 border border-red-200 cursor-pointer hover:shadow-md hover:border-red-300 transition-all duration-200 hover:-translate-y-0.5"
+              <div key={`${order.id}-${index}`} className="bg-white rounded-xl p-4 border border-red-200 cursor-pointer hover:shadow-md hover:border-red-300 transition-all duration-200 hover:-translate-y-0.5"
                    onClick={() => setActiveTab('orders')}>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">

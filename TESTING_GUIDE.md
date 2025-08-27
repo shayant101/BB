@@ -114,20 +114,36 @@ Verify MongoDB Atlas connection in backend logs:
 ✅ Authentication successful for user: {name} (restaurant)
 ```
 
-### Test Case 5: Vendor Storefront
-**Objective**: Verify individual vendor storefronts load
+### Test Case 5: Vendor Storefront (Critical Test)
+**Objective**: Verify individual vendor storefronts load correctly with proper data
 
 **Steps**:
 1. From marketplace, click "View Storefront"
-2. Verify products display
-3. Check product details and pricing
-4. Test "Add to Cart" functionality
+2. Verify vendor name displays correctly (not "Vendor X's Store")
+3. Check that products display with proper units and images
+4. Verify both storefront and products API endpoints work
+5. Test "Add to Cart" functionality
 
 **Expected Results**:
-- ✅ Storefront page loads with vendor info
-- ✅ Products display with images and prices
+- ✅ Storefront page loads with **actual vendor name** (e.g., "Golden Harvest Co.")
+- ✅ Products display with correct **units** (e.g., "each", "lb") and **images**
+- ✅ No AttributeError in backend logs
+- ✅ Both `/api/storefront/{id}` and `/api/storefront/{id}/products` return 200 OK
 - ✅ Add to Cart buttons functional
 - ✅ Cart icon updates with item count
+
+**Backend Verification**:
+```
+🔍 Storefront auth - Clerk user ID: user_...
+🔍 Storefront - User: {name} (ID: {id}, Role: restaurant)
+INFO: GET /api/storefront/{vendor_id} HTTP/1.1" 200 OK
+INFO: GET /api/storefront/{vendor_id}/products HTTP/1.1" 200 OK
+```
+
+**Critical Checks**:
+- ❌ **FAIL**: Vendor name shows "Vendor 39's Store" → Check `business_name` field in API response
+- ❌ **FAIL**: AttributeError in logs → Check `unit_of_measure` and `image_urls` field mapping
+- ❌ **FAIL**: 404 on products endpoint → Ensure `/storefront/{id}/products` endpoint exists
 
 ## Order Management Testing
 
@@ -268,7 +284,10 @@ After any code changes, verify:
 ### Marketplace
 - [ ] Vendor listing loads
 - [ ] Storefront pages accessible
-- [ ] Product details display
+- [ ] **Vendor names display correctly** (not "Vendor X's Store")
+- [ ] Product details display with proper **units and images**
+- [ ] **No AttributeError in backend logs**
+- [ ] **Both storefront endpoints return 200 OK** (`/storefront/{id}` and `/storefront/{id}/products`)
 - [ ] Search/filtering (if implemented)
 
 ### Orders
@@ -297,6 +316,62 @@ After any code changes, verify:
 
 ### Issue: Orders not appearing in dashboard
 **Solution**: Verify user authentication consistency between order creation and retrieval
+
+### Issue: Storefront AttributeError and 404 Errors
+**Symptoms**:
+- Storefront pages show AttributeError in backend logs
+- Products endpoint returns 404 Not Found
+- Vendor name shows as "Vendor X's Store" instead of actual name
+
+**Root Causes**:
+1. **AttributeError**: Backend trying to access `item.unit` and `item.image_url` but database model has `unit_of_measure` and `image_urls` (array)
+2. **404 Products Endpoint**: Frontend calls `/storefront/{vendor_id}/products` but endpoint doesn't exist
+3. **Generic Vendor Name**: Frontend expects `business_name` field but backend only returns `vendor_name`
+
+**Solutions**:
+1. **Fix AttributeError** in `backend/app/routers/storefront.py`:
+   ```python
+   # Change from:
+   unit=item.unit,
+   image_url=item.image_url,
+   
+   # To:
+   unit=item.unit_of_measure,
+   image_url=item.image_urls[0] if item.image_urls else None,
+   ```
+
+2. **Add Missing Products Endpoint** in `backend/app/routers/storefront.py`:
+   ```python
+   @router.get("/storefront/{vendor_id}/products", response_model=List[StorefrontItem])
+   async def get_vendor_products(vendor_id: int, current_user: User = Depends(get_current_user)):
+       # Implementation similar to get_vendor_storefront but returns only products
+   ```
+
+3. **Fix Vendor Name Display** in `StorefrontResponse` model:
+   ```python
+   # Add to StorefrontResponse:
+   business_name: Optional[str] = None
+   
+   # Set in response:
+   business_name=vendor.name,
+   ```
+
+**Backend Log Indicators**:
+```
+# Before fix:
+INFO: 127.0.0.1 - "GET /api/storefront/37/products HTTP/1.1" 404 Not Found
+AttributeError: 'InventoryItem' object has no attribute 'unit'
+
+# After fix:
+INFO: 127.0.0.1 - "GET /api/storefront/37 HTTP/1.1" 200 OK
+INFO: 127.0.0.1 - "GET /api/storefront/37/products HTTP/1.1" 200 OK
+```
+
+**Testing Verification**:
+- [ ] Storefront pages load without backend errors
+- [ ] Products display with correct units and images
+- [ ] Vendor name shows actual business name, not "Vendor X's Store"
+- [ ] Both `/storefront/{id}` and `/storefront/{id}/products` endpoints return 200 OK
 
 ## Test Data
 

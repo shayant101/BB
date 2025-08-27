@@ -173,3 +173,12 @@ coverage.xml
 
 # FastAPI/Uvicorn
 .uvicorn-pid
+
+# Ignore temporary node_modules backup folders
+frontend/node_modules_backup_*/
+
+# Ignore demo files
+demo 2.html
+marketplace-demo 2.html
+modern-demo 2.html
+production-env-template 2.txt

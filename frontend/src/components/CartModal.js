@@ -148,8 +148,8 @@ export default function CartModal({ isOpen, onClose }) {
                             </div>
                           ) : (
                             <ul role="list" className="-my-6 divide-y divide-gray-200">
-                              {cartItems.map((item) => (
-                                <li key={item.product_id} className="flex py-6">
+                              {cartItems.map((item, index) => (
+                                <li key={`${item.product_id}-${index}`} className="flex py-6">
                                   <div className="h-24 w-24 flex-shrink-0 overflow-hidden rounded-md border border-gray-200">
                                     {item.image_urls && item.image_urls.length > 0 ? (
                                       <img
