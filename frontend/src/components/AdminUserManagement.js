@@ -216,46 +216,70 @@ export default function AdminUserManagement() {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {new Date(user.created_at).toLocaleDateString()}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                    <button
-                      onClick={() => fetchUserDetails(user.user_id)}
-                      className="text-blue-600 hover:text-blue-900"
-                    >
-                      View
-                    </button>
-                    {user.is_active ? (
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <div className="flex items-center space-x-3">
+                      {/* View Button */}
+                      <button
+                        onClick={() => fetchUserDetails(user.user_id)}
+                        className="text-blue-600 hover:text-blue-900 p-1"
+                        title="View user details"
+                      >
+                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
+                          <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd"/>
+                        </svg>
+                      </button>
+
+                      {/* Active/Inactive Toggle */}
                       <button
                         onClick={() => {
-                          const reason = prompt('Reason for deactivation:');
-                          if (reason) handleStatusChange(user.user_id, 'inactive', reason);
+                          if (user.is_active) {
+                            const reason = prompt('Reason for deactivation:');
+                            if (reason) handleStatusChange(user.user_id, 'inactive', reason);
+                          } else {
+                            handleStatusChange(user.user_id, 'active', 'Reactivated by admin');
+                          }
                         }}
-                        className="text-red-600 hover:text-red-900"
+                        className={`p-1 rounded-full transition-colors ${
+                          user.is_active
+                            ? 'text-green-600 hover:text-green-800 hover:bg-green-50'
+                            : 'text-gray-400 hover:text-green-600 hover:bg-green-50'
+                        }`}
+                        title={user.is_active ? 'Deactivate user' : 'Activate user'}
                       >
-                        Deactivate
+                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                          {user.is_active ? (
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd"/>
+                          ) : (
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8 7a1 1 0 012 0v6a1 1 0 11-2 0V7z" clipRule="evenodd"/>
+                          )}
+                        </svg>
                       </button>
-                    ) : (
+
+                      {/* Approve Button (for pending users) */}
+                      {user.status === 'pending_approval' && (
+                        <button
+                          onClick={() => handleStatusChange(user.user_id, 'active', 'Approved by admin')}
+                          className="text-green-600 hover:text-green-800 p-1"
+                          title="Approve user"
+                        >
+                          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
+                          </svg>
+                        </button>
+                      )}
+
+                      {/* Delete Button with Bin Icon */}
                       <button
-                        onClick={() => handleStatusChange(user.user_id, 'active', 'Reactivated by admin')}
-                        className="text-green-600 hover:text-green-900"
+                        onClick={() => handleDeleteUser(user.user_id, user.name)}
+                        className="text-red-600 hover:text-red-800 hover:bg-red-50 p-1 rounded"
+                        title="Permanently delete user"
                       >
-                        Activate
+                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd"/>
+                        </svg>
                       </button>
-                    )}
-                    {user.status === 'pending_approval' && (
-                      <button
-                        onClick={() => handleStatusChange(user.user_id, 'active', 'Approved by admin')}
-                        className="text-green-600 hover:text-green-900"
-                      >
-                        Approve
-                      </button>
-                    )}
-                    <button
-                      onClick={() => handleDeleteUser(user.user_id, user.name)}
-                      className="text-red-600 hover:text-red-900 font-bold"
-                      title="Permanently delete user"
-                    >
-                      Delete
-                    </button>
+                    </div>
                   </td>
                 </tr>
               ))}

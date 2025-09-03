@@ -18,6 +18,9 @@ from .admin_auth import (
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
 
+# Constants
+IMPERSONATION_TOKEN_EXPIRE_MINUTES = 60  # 1 hour
+
 # Response Models
 class DashboardStats(BaseModel):
     total_users: int
