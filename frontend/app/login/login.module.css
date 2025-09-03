@@ -45,7 +45,7 @@
 
 /* Left Side Branding with Glass Effect */
 .brandingSection {
-  background: linear-gradient(135deg, #3498db 0%, #8e44ad 100%);
+  background: linear-gradient(135deg, #4f7cff 0%, #1e40af 100%);
   position: relative;
   overflow: hidden;
 }
@@ -158,7 +158,7 @@
 /* Modern Button Styles */
 .primaryButton {
   width: 100%;
-  background: linear-gradient(135deg, #3498db 0%, #8e44ad 100%);
+  background: linear-gradient(135deg, #4f7cff 0%, #1e40af 100%);
   color: white;
   font-weight: 600;
   font-size: 1.125rem;
@@ -167,7 +167,7 @@
   border: none;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 4px 14px 0 rgba(52, 152, 219, 0.25);
+  box-shadow: 0 4px 14px 0 rgba(79, 124, 255, 0.25);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -176,8 +176,8 @@
 
 .primaryButton:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px 0 rgba(52, 152, 219, 0.35);
-  background: linear-gradient(135deg, #2980b9 0%, #7d3c98 100%);
+  box-shadow: 0 8px 25px 0 rgba(79, 124, 255, 0.35);
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
 }
 
 .secondaryButton {
