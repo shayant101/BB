@@ -5,6 +5,9 @@ import { useRouter } from 'next/navigation';
 import { useUser, useClerk } from '@clerk/nextjs';
 import VendorMarketplace from '../../src/components/VendorMarketplace';
 
+// Disable static generation for this page since it requires authentication
+export const dynamic = 'force-dynamic';
+
 export default function MarketplacePage() {
   const { isLoaded, isSignedIn, user } = useUser();
   const { signOut } = useClerk();
