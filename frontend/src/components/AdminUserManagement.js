@@ -46,6 +46,19 @@ export default function AdminUserManagement() {
     }
   };
 
+  const handleDeleteUser = async (userId, userName) => {
+    if (window.confirm(`Are you sure you want to PERMANENTLY DELETE user "${userName}"? This action cannot be undone.`)) {
+      try {
+        await adminAPI.deleteUser(userId);
+        fetchUsers(); // Refresh the list
+        alert(`User "${userName}" has been permanently deleted`);
+      } catch (error) {
+        console.error('Error deleting user:', error);
+        alert('Error deleting user');
+      }
+    }
+  };
+
   const fetchUserDetails = async (userId) => {
     try {
       const userData = await adminAPI.getUsers({ id: userId });
@@ -174,7 +187,7 @@ export default function AdminUserManagement() {
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {users.map((user) => (
-                <tr key={user.id} className="hover:bg-gray-50">
+                <tr key={user.user_id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
                       <div className="flex-shrink-0 h-10 w-10">
@@ -205,7 +218,7 @@ export default function AdminUserManagement() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
                     <button
-                      onClick={() => fetchUserDetails(user.id)}
+                      onClick={() => fetchUserDetails(user.user_id)}
                       className="text-blue-600 hover:text-blue-900"
                     >
                       View
@@ -214,7 +227,7 @@ export default function AdminUserManagement() {
                       <button
                         onClick={() => {
                           const reason = prompt('Reason for deactivation:');
-                          if (reason) handleStatusChange(user.id, 'inactive', reason);
+                          if (reason) handleStatusChange(user.user_id, 'inactive', reason);
                         }}
                         className="text-red-600 hover:text-red-900"
                       >
@@ -222,7 +235,7 @@ export default function AdminUserManagement() {
                       </button>
                     ) : (
                       <button
-                        onClick={() => handleStatusChange(user.id, 'active', 'Reactivated by admin')}
+                        onClick={() => handleStatusChange(user.user_id, 'active', 'Reactivated by admin')}
                         className="text-green-600 hover:text-green-900"
                       >
                         Activate
@@ -230,12 +243,19 @@ export default function AdminUserManagement() {
                     )}
                     {user.status === 'pending_approval' && (
                       <button
-                        onClick={() => handleStatusChange(user.id, 'active', 'Approved by admin')}
+                        onClick={() => handleStatusChange(user.user_id, 'active', 'Approved by admin')}
                         className="text-green-600 hover:text-green-900"
                       >
                         Approve
                       </button>
                     )}
+                    <button
+                      onClick={() => handleDeleteUser(user.user_id, user.name)}
+                      className="text-red-600 hover:text-red-900 font-bold"
+                      title="Permanently delete user"
+                    >
+                      Delete
+                    </button>
                   </td>
                 </tr>
               ))}

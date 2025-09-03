@@ -261,3 +261,32 @@ async def get_audit_logs(
             **log.dict(exclude={"log_id", "admin_name", "target_user_name"})
         ))
     return response
+
+@router.delete("/users/{user_id}")
+async def delete_user(user_id: int, request: Request, admin: User = Depends(get_current_admin)):
+    user = await User.find_one(User.user_id == user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    if user.role == "admin":
+        raise HTTPException(status_code=400, detail="Cannot delete admin user")
+    
+    # Store user info for audit log before deletion
+    user_info = {
+        "username": user.username,
+        "email": user.email,
+        "role": user.role,
+        "name": user.name
+    }
+    
+    # Delete the user
+    await user.delete()
+    
+    await log_admin_action(
+        admin_id=admin.user_id,
+        action="user_deleted",
+        target_user_id=user_id,
+        details={"deleted_user": user_info, "reason": "Permanently deleted by admin"},
+        request=request
+    )
+    
+    return {"message": f"User {user.name} permanently deleted"}
