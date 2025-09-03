@@ -45,7 +45,7 @@ export default function SignUpPage() {
           </div>
 
           <div className="flex justify-center">
-            <SignUp 
+            <SignUp
               appearance={{
                 elements: {
                   formButtonPrimary: 'bg-blue-600 hover:bg-blue-700 text-sm normal-case',
@@ -57,6 +57,7 @@ export default function SignUpPage() {
                   footerActionLink: 'text-blue-600 hover:text-blue-700'
                 }
               }}
+              afterSignUpUrl="/sign-up/role-selection"
               fallbackRedirectUrl="/dashboard"
               signInUrl="/sign-in"
             />

@@ -139,7 +139,7 @@ async def handle_user_created(user_data: Dict[str, Any], request: Request):
             user_id=next_user_id,
             username=username,
             password_hash=None,  # No password for Clerk users
-            role="restaurant",  # Default role, can be updated later
+            role=None,  # No default role, user must select one
             name=full_name,
             email=primary_email or "",
             phone="",  # Will be filled later by user
