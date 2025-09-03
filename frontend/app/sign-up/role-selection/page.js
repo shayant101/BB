@@ -14,11 +14,21 @@ export default function RoleSelectionPage() {
     setError(null);
 
     try {
-      await profilesAPI.setRole(role);
+      console.log('🔍 Setting role to:', role);
+      const response = await profilesAPI.setRole(role);
+      console.log('✅ Role set successfully:', response);
       router.push('/dashboard');
     } catch (error) {
-      console.error('Error setting role:', error);
-      setError('Failed to set role. Please try again.');
+      console.error('❌ Error setting role:', error);
+      console.error('Error details:', {
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data,
+        message: error.message
+      });
+      
+      const errorMessage = error.response?.data?.detail || error.message || 'Failed to set role. Please try again.';
+      setError(`Failed to set role: ${errorMessage}`);
     } finally {
       setLoading(false);
     }

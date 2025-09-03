@@ -48,7 +48,7 @@ export default function AdminImpersonation() {
     }
 
     try {
-      const data = await adminAPI.impersonateUser(user.id);
+      const data = await adminAPI.impersonateUser(user.user_id);
       setActiveSession({
         ...data,
         startTime: new Date(),
@@ -225,7 +225,7 @@ export default function AdminImpersonation() {
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {users.map((user) => (
-                <tr key={user.id} className="hover:bg-gray-50">
+                <tr key={user.user_id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
                       <div className="flex-shrink-0 h-10 w-10">
