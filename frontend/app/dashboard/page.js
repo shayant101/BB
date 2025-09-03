@@ -3,56 +3,38 @@ console.log("--- Rendering DashboardPage ---");
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useUser, useClerk } from '@clerk/nextjs';
-import { profilesAPI } from '../../src/lib/api';
+import { profilesAPI, getAuthToken, getUser, removeAuthToken } from '../../src/lib/api';
 import RestaurantDashboard from '../../src/components/RestaurantDashboard';
 import VendorDashboard from '../../src/components/VendorDashboard';
 
 export default function Dashboard() {
-  const { isLoaded, isSignedIn, user } = useUser();
-  const { signOut } = useClerk();
+  const [user, setUser] = useState(null);
   const [userRole, setUserRole] = useState(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
-    if (isLoaded) {
-      if (!isSignedIn) {
-        router.push('/');
-        return;
-      }
-
-      // Fetch user profile to get their role
-      fetchUserProfile();
+    // Check if user is authenticated
+    const token = getAuthToken();
+    const userData = getUser();
+    
+    if (!token || !userData) {
+      router.push('/sign-in');
+      return;
     }
-  }, [isLoaded, isSignedIn, router]);
 
-  const fetchUserProfile = async () => {
-    try {
-      const profile = await profilesAPI.getProfile();
-      
-      // If user doesn't have a role set, redirect to role selection
-      if (!profile.role) {
-        router.push('/sign-up/role-selection');
-        return;
-      }
-      
-      setUserRole(profile.role);
-    } catch (error) {
-      console.error('Error fetching user profile:', error);
-      // If there's an error, redirect to role selection as fallback
-      router.push('/sign-up/role-selection');
-    } finally {
-      setLoading(false);
-    }
-  };
+    setUser(userData);
+    setUserRole(userData.role);
+    setLoading(false);
+  }, [router]);
+
 
   const handleLogout = async () => {
-    await signOut();
-    router.push('/');
+    removeAuthToken();
+    router.push('/sign-in');
   };
 
-  if (loading || !isLoaded) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -63,7 +45,7 @@ export default function Dashboard() {
     );
   }
 
-  if (!isSignedIn || !user) {
+  if (!user) {
     return null;
   }
 
@@ -80,7 +62,7 @@ export default function Dashboard() {
               </span>
             </div>
             <div className="flex items-center space-x-4">
-              <span className="text-gray-700">Welcome, {user.firstName || user.emailAddresses[0]?.emailAddress}</span>
+              <span className="text-gray-700">Welcome, {user.name}</span>
               <button
                 onClick={handleLogout}
                 className="btn-secondary"
@@ -94,7 +76,18 @@ export default function Dashboard() {
 
       {/* Dashboard Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {userRole === 'restaurant' ? (
+        {userRole === 'admin' ? (
+          // Redirect admin users to the admin page
+          (() => {
+            router.push('/admin');
+            return (
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+                <p className="text-gray-600">Redirecting to admin dashboard...</p>
+              </div>
+            );
+          })()
+        ) : userRole === 'restaurant' ? (
           <RestaurantDashboard user={{ ...user, role: userRole }} />
         ) : (
           <VendorDashboard user={{ ...user, role: userRole }} />

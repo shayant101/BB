@@ -324,7 +324,7 @@ export default function AdminDashboard() {
             {actionQueues?.pending_vendors?.length > 0 ? (
               <div className="space-y-4">
                 {actionQueues.pending_vendors.map((vendor, index) => (
-                  <div key={vendor.id} className="flex items-center justify-between p-4 bg-yellow-50 rounded-lg border border-yellow-200 hover-lift slide-in" style={{animationDelay: `${0.7 + index * 0.1}s`}}>
+                  <div key={vendor.user_id} className="flex items-center justify-between p-4 bg-yellow-50 rounded-lg border border-yellow-200 hover-lift slide-in" style={{animationDelay: `${0.7 + index * 0.1}s`}}>
                     <div>
                       <h4 className="font-medium text-gray-900 flex items-center gap-2">
                         {vendor.name}
@@ -370,11 +370,11 @@ export default function AdminDashboard() {
             {actionQueues?.stuck_orders?.length > 0 ? (
               <div className="space-y-4">
                 {actionQueues.stuck_orders.map((order, index) => (
-                  <div key={order.id} className="p-4 bg-red-50 rounded-lg border border-red-200 hover-lift slide-in" style={{animationDelay: `${0.8 + index * 0.1}s`}}>
+                  <div key={order.order_id} className="p-4 bg-red-50 rounded-lg border border-red-200 hover-lift slide-in" style={{animationDelay: `${0.8 + index * 0.1}s`}}>
                     <div className="flex justify-between items-start">
                       <div>
                         <h4 className="font-medium text-gray-900 flex items-center gap-2">
-                          Order #{order.id}
+                          Order #{order.order_id}
                           <div className="w-2 h-2 bg-red-500 rounded-full blink-dot"></div>
                         </h4>
                         <p className="text-sm text-gray-600">{order.restaurant_name} → {order.vendor_name}</p>

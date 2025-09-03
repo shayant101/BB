@@ -1,13 +1,16 @@
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Header
+from fastapi.security import OAuth2PasswordBearer
 from pydantic import BaseModel
 from ..mongo_models import User, VendorProfile
 from ..inventory_models import InventoryItem, InventorySKU, InventoryCategory
-from ..auth_simple import verify_clerk_token
+from ..auth_simple import verify_token
 from datetime import datetime
 from beanie import PydanticObjectId
 
 router = APIRouter()
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
 
 # Pydantic models for storefront
 class StorefrontItem(BaseModel):
@@ -43,85 +46,16 @@ class StorefrontResponse(BaseModel):
     contact_email: Optional[str] = None
 
 # Dependency to get current user from Clerk JWT token
-async def get_current_user(authorization: str = Header(None)):
-    if not authorization or not authorization.startswith("Bearer "):
+async def get_current_user(token: str = Depends(oauth2_scheme)):
+    token_data = verify_token(token)
+    user = await User.find_one(User.username == token_data.username)
+    if user is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Authorization header missing or invalid"
+            detail="Could not validate credentials",
+            headers={"WWW-Authenticate": "Bearer"},
         )
-    
-    token = authorization.split(" ")[1]
-    
-    try:
-        # Verify Clerk token and get user info
-        clerk_user_info = verify_clerk_token(token)
-        clerk_user_id = clerk_user_info['clerk_user_id']
-        
-        print(f"🔍 Storefront auth - Clerk user ID: {clerk_user_id}")
-        
-        # Find user by Clerk user ID
-        user = await User.find_one(User.clerk_user_id == clerk_user_id)
-        
-        if not user:
-            # Also try to find by email for account linking
-            if clerk_user_info.get('email'):
-                user = await User.find_one(User.email == clerk_user_info['email'])
-                
-                # Update Clerk user ID if found by email
-                if user:
-                    user.clerk_user_id = clerk_user_id
-                    user.auth_provider = "clerk" if user.auth_provider == "local" else "both"
-                    await user.save()
-        
-        if not user:
-            # Create a new user from Clerk information
-            # Generate a unique user_id (find the highest existing user_id and add 1)
-            last_user = await User.find().sort(-User.user_id).limit(1).to_list()
-            next_user_id = (last_user[0].user_id + 1) if last_user else 1
-            
-            # Handle None email from Clerk token
-            email = clerk_user_info.get('email')
-            if not email:
-                email = f"user_{clerk_user_id[-8:]}@example.com"
-            
-            user = User(
-                user_id=next_user_id,
-                username=f"user_{clerk_user_id[-8:]}",
-                name=clerk_user_info.get('name', 'New User'),
-                email=email,
-                phone="",
-                address="",
-                role="restaurant",
-                clerk_user_id=clerk_user_id,
-                auth_provider="clerk",
-                is_active=True,
-                created_at=datetime.utcnow(),
-                updated_at=datetime.utcnow()
-            )
-            
-            await user.save()
-            print(f"🔍 Created new user for storefront: {user.user_id}")
-        
-        print(f"🔍 Storefront - User: {user.name} (ID: {user.user_id}, Role: {user.role})")
-        
-        # Check if user account is active
-        if not user.is_active and user.role != "admin":
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Account is deactivated. Please contact support."
-            )
-        
-        return user
-        
-    except HTTPException:
-        # Re-raise HTTP exceptions (like invalid token)
-        raise
-    except Exception as e:
-        print(f"❌ Storefront authentication error: {str(e)}")
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Authentication failed"
-        )
+    return user
 
 @router.get("/storefront/{vendor_id}", response_model=StorefrontResponse)
 async def get_vendor_storefront(

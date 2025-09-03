@@ -1,4 +1,4 @@
-import { SignUp } from '@clerk/nextjs'
+import EmailRegistrationForm from '../../../src/components/EmailRegistrationForm';
 
 export default function SignUpPage() {
   return (
@@ -44,24 +44,7 @@ export default function SignUpPage() {
             <p className="text-gray-600">Restaurant-Supplier Management</p>
           </div>
 
-          <div className="flex justify-center">
-            <SignUp
-              appearance={{
-                elements: {
-                  formButtonPrimary: 'bg-blue-600 hover:bg-blue-700 text-sm normal-case',
-                  card: 'shadow-lg',
-                  headerTitle: 'text-2xl font-bold text-gray-900',
-                  headerSubtitle: 'text-gray-600',
-                  socialButtonsBlockButton: 'border border-gray-300 hover:bg-gray-50',
-                  formFieldInput: 'border border-gray-300 rounded-lg px-3 py-2',
-                  footerActionLink: 'text-blue-600 hover:text-blue-700'
-                }
-              }}
-              afterSignUpUrl="/sign-up/role-selection"
-              fallbackRedirectUrl="/dashboard"
-              signInUrl="/sign-in"
-            />
-          </div>
+          <EmailRegistrationForm />
         </div>
       </div>
     </div>

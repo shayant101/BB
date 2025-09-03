@@ -8,6 +8,7 @@ from fastapi import HTTPException, status, Depends, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
 from .mongo_models import User, AdminAuditLog, UserEventLog, ImpersonationSession
+from .auth_simple import verify_token as jwt_verify_token, TokenData
 
 # Security configuration
 SECRET_KEY = "your-secret-key-change-in-production"
@@ -59,36 +60,32 @@ def create_impersonation_token(admin_id: int, target_user_id: int, target_user_d
     return create_access_token(token_data, timedelta(minutes=IMPERSONATION_TOKEN_EXPIRE_MINUTES))
 
 def verify_token(token: str) -> Dict[str, Any]:
+    """Use JWT token verification from auth_simple.py"""
     try:
-        token_string = base64.b64decode(token.encode()).decode()
-        payload = json.loads(token_string)
-        if datetime.utcnow().timestamp() > payload.get("exp", 0):
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token expired")
+        # Use the JWT verification from auth_simple.py
+        token_data = jwt_verify_token(token)
+        # Convert TokenData to dict format expected by this module
+        from jose import jwt
+        from .auth_simple import SECRET_KEY, ALGORITHM
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         return payload
-    except Exception:
+    except Exception as e:
+        print(f"❌ Admin auth token verification failed: {e}")
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Could not validate credentials")
 
 async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)) -> User:
-    print(f"🔍 AUTH DEBUG - get_current_user called")
-    print(f"🔍 Token received: {credentials.credentials[:50]}..." if credentials.credentials else "No token")
-    
     try:
         payload = verify_token(credentials.credentials)
-        print(f"🔍 Token payload: {payload}")
     except Exception as e:
-        print(f"❌ Token verification failed: {e}")
         raise
     
     username = payload.get("sub")
-    print(f"🔍 Username from token: {username}")
     
     if not username:
-        print(f"❌ No username in token payload")
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
     
     # Special case for hardcoded admin - bypass database lookup
     if username == "admin" and payload.get("user_id") == 999999:
-        print(f"✅ Using hardcoded admin user")
         # This is the special hardcoded admin.
         # Return a User object directly without a database lookup.
         return User(
@@ -101,31 +98,19 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
             address="Admin Office"
         )
     
-    print(f"🔍 Looking up user in database: {username}")
     user = await User.find_one(User.username == username)
     if not user:
-        print(f"❌ User not found in database: {username}")
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
     
-    print(f"✅ User found: {user.username}, role: {user.role}")
-    
     if not payload.get("is_impersonating", False) and not user.is_active:
-        print(f"❌ User account is deactivated")
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User account is deactivated")
     
     return user
 
 async def get_current_admin(current_user: User = Depends(get_current_user)) -> User:
-    print(f"🔍 ADMIN AUTH DEBUG - get_current_admin called")
-    print(f"🔍 Current user: {current_user}")
-    print(f"🔍 User role: {current_user.role if current_user else 'No user'}")
-    print(f"🔍 User ID: {current_user.user_id if current_user else 'No user'}")
-    
     if current_user.role != "admin":
-        print(f"❌ ADMIN AUTH FAILED - User role '{current_user.role}' is not 'admin'")
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin access required")
     
-    print(f"✅ ADMIN AUTH SUCCESS - User {current_user.username} is admin")
     return current_user
 
 async def log_admin_action(admin_id: int, action: str, target_user_id: Optional[int] = None, details: Optional[Dict[str, Any]] = None, request: Optional[Request] = None):

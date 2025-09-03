@@ -1,5 +1,6 @@
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Header, Query
+from fastapi.security import OAuth2PasswordBearer
 from pydantic import BaseModel
 from ..mongo_models import User, VendorCategory
 from ..inventory_models import InventoryItem, InventorySKU, InventoryCategory
@@ -17,13 +18,15 @@ from ..comparison_models import (
 )
 from beanie import PydanticObjectId
 from bson import ObjectId
-from ..auth_simple import verify_token, TokenData, verify_clerk_token
+from ..auth_simple import verify_token, TokenData
 from datetime import datetime
 import math
 import uuid
 import time
 
 router = APIRouter()
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
 
 # Pydantic models for marketplace
 class VendorCategoryResponse(BaseModel):
@@ -79,102 +82,16 @@ class VendorSearchResponse(BaseModel):
     total_pages: int
 
 # Dependency to get current user from Clerk JWT token
-async def get_current_user(authorization: str = Header(None)):
-    print(f"🔍 Marketplace auth check - Authorization header: {authorization[:50] if authorization else 'None'}...")
-    
-    if not authorization or not authorization.startswith("Bearer "):
-        print("❌ Authorization header missing or invalid")
+async def get_current_user(token: str = Depends(oauth2_scheme)):
+    token_data = verify_token(token)
+    user = await User.find_one(User.username == token_data.username)
+    if user is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Authorization header missing or invalid"
+            detail="Could not validate credentials",
+            headers={"WWW-Authenticate": "Bearer"},
         )
-    
-    token = authorization.split(" ")[1]
-    print(f"🔍 Extracted token: {token[:20]}...")
-    
-    try:
-        # Verify Clerk token and get user info
-        print("🔍 Attempting to verify Clerk token...")
-        clerk_user_info = verify_clerk_token(token)
-        print(f"✅ Clerk token verified: {clerk_user_info}")
-        
-        clerk_user_id = clerk_user_info['clerk_user_id']
-        print(f"🔍 Looking for user with Clerk ID: {clerk_user_id}")
-        
-        # Find user by Clerk user ID
-        user = await User.find_one(User.clerk_user_id == clerk_user_id)
-        print(f"🔍 User found by Clerk ID: {user is not None}")
-        
-        if not user:
-            # Also try to find by email for account linking
-            if clerk_user_info.get('email'):
-                print(f"🔍 Trying to find user by email: {clerk_user_info['email']}")
-                user = await User.find_one(User.email == clerk_user_info['email'])
-                print(f"🔍 User found by email: {user is not None}")
-                
-                # Update Clerk user ID if found by email
-                if user:
-                    print(f"🔧 Linking user account with Clerk ID")
-                    user.clerk_user_id = clerk_user_id
-                    user.auth_provider = "clerk" if user.auth_provider == "local" else "both"
-                    await user.save()
-                    print(f"✅ User account linked successfully")
-        
-        if not user:
-            print("🔧 User not found in database, creating new user from Clerk data...")
-            
-            # Generate a unique user_id (find the highest existing user_id and add 1)
-            last_user = await User.find().sort(-User.user_id).limit(1).to_list()
-            next_user_id = (last_user[0].user_id + 1) if last_user else 1
-            
-            # Create new user with Clerk data
-            # Handle None email from Clerk token
-            email = clerk_user_info.get('email')
-            if not email:
-                email = f"user_{clerk_user_id[-8:]}@example.com"
-            
-            user = User(
-                user_id=next_user_id,
-                username=f"user_{clerk_user_id[-8:]}",
-                name=clerk_user_info.get('name', 'New User'),
-                email=email,
-                phone="",
-                address="",
-                role="restaurant",
-                clerk_user_id=clerk_user_id,
-                auth_provider="clerk",
-                is_active=True,
-                created_at=datetime.utcnow(),
-                updated_at=datetime.utcnow()
-            )
-            
-            await user.save()
-            print(f"✅ New user created successfully: {user.name} (ID: {user.user_id})")
-        
-        # Check if user account is active
-        if not user.is_active and user.role != "admin":
-            print("❌ User account is deactivated")
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Account is deactivated. Please contact support."
-            )
-        
-        print(f"✅ Authentication successful for user: {user.name} ({user.role})")
-        return user
-        
-    except HTTPException as e:
-        print(f"❌ HTTP Exception during auth: {e.detail}")
-        # Re-raise HTTP exceptions (like invalid token)
-        raise
-    except Exception as e:
-        print(f"❌ Marketplace authentication error: {str(e)}")
-        print(f"❌ Error type: {type(e).__name__}")
-        import traceback
-        print(f"❌ Traceback: {traceback.format_exc()}")
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Authentication failed"
-        )
+    return user
 
 @router.get("/categories", response_model=List[VendorCategoryResponse])
 async def get_vendor_categories(current_user: User = Depends(get_current_user)):

@@ -48,7 +48,7 @@ export default function AdminImpersonation() {
     }
 
     try {
-      const data = await adminAPI.impersonateUser(user.user_id);
+      const data = await adminAPI.impersonateUser(user.user_id, reason);
       setActiveSession({
         ...data,
         startTime: new Date(),
@@ -76,17 +76,10 @@ export default function AdminImpersonation() {
 
   const openUserInterface = () => {
     if (activeSession) {
-      // Open new window/tab with impersonation token
       const impersonationToken = sessionStorage.getItem('impersonation_token');
-      const newWindow = window.open('/dashboard', '_blank');
-      
-      // Set the impersonation token in the new window
-      setTimeout(() => {
-        if (newWindow) {
-          newWindow.localStorage.setItem('token', impersonationToken);
-          newWindow.location.reload();
-        }
-      }, 1000);
+      // This will open the dashboard in a new tab, and the middleware will handle the session creation.
+      const impersonateUrl = `/dashboard?impersonation_token=${encodeURIComponent(impersonationToken)}`;
+      window.open(impersonateUrl, '_blank');
     }
   };
 

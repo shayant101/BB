@@ -25,11 +25,7 @@ export default function VendorDashboard({ user }) {
 
   const loadData = async () => {
     try {
-      // For now, we'll use mock data since we're transitioning to Clerk
-      // In a real implementation, you'd use Clerk's auth token for API calls
-      const ordersData = []; // Mock empty data for now
-      
-      // const ordersData = await ordersAPI.getOrders();
+      const ordersData = await ordersAPI.getOrders();
       setOrders(ordersData);
       
       // Calculate stats

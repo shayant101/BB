@@ -1,6 +1,7 @@
 from datetime import timedelta, datetime
+from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Request
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 from ..mongo_models import User
 from ..auth_simple import (
     verify_password,
@@ -8,16 +9,21 @@ from ..auth_simple import (
     ACCESS_TOKEN_EXPIRE_MINUTES,
     Token,
     UserLogin,
-    verify_clerk_token
+    get_password_hash,
 )
 from ..admin_auth import log_user_event
 
 router = APIRouter()
 
-# Pydantic models for Clerk authentication
-class ClerkLoginRequest(BaseModel):
-    token: str
-    role: str = "restaurant"  # Default role for new users
+class UserRegister(BaseModel):
+    username: str
+    password: str
+    email: EmailStr
+    name: str
+    phone: str
+    address: str
+    role: str
+    description: Optional[str] = None
 
 @router.post("/login", response_model=Token)
 async def login_for_access_token(
@@ -81,89 +87,74 @@ async def login_for_access_token(
         "name": user.name
     }
 
-@router.post("/clerk")
-async def clerk_login(
-    clerk_request: ClerkLoginRequest,
-    request: Request
-):
-    """
-    Authenticate user with Clerk JWT token
-    """
-    try:
-        # Verify Clerk token and get user info
-        clerk_user_info = verify_clerk_token(clerk_request.token)
-        clerk_user_id = clerk_user_info['clerk_user_id']
-        
-        # Check if user already exists
-        existing_user = await User.find_one(User.clerk_user_id == clerk_user_id)
-        if not existing_user:
-            # Also check by email for account linking
-            if clerk_user_info.get('email'):
-                existing_user = await User.find_one(User.email == clerk_user_info['email'])
-        
-        # If user doesn't exist, they should be created via webhook
-        # For now, return an error asking them to complete registration
-        if not existing_user:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="User not found. Please complete registration first."
-            )
-        
-        # Update Clerk user ID if not set
-        if not existing_user.clerk_user_id:
-            existing_user.clerk_user_id = clerk_user_id
-            existing_user.auth_provider = "clerk" if existing_user.auth_provider == "local" else "both"
-            await existing_user.save()
-        
-        # Check if user account is active
-        if not existing_user.is_active and existing_user.role != "admin":
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Account is deactivated. Please contact support.",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
-        
-        # Log user login event
-        await log_user_event(
-            user_id=existing_user.user_id,
-            event_type="login",
-            details={
-                "login_method": "clerk",
-                "clerk_user_id": clerk_user_id,
-                "user_agent": request.headers.get("user-agent"),
-                "success": True
-            },
-            request=request
-        )
-        
-        # Create access token
-        access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-        access_token = create_access_token(
-            data={
-                "sub": existing_user.username,
-                "user_id": existing_user.user_id,
-                "role": existing_user.role,
-                "name": existing_user.name,
-                "is_impersonating": False
-            },
-            expires_delta=access_token_expires
-        )
-        
-        return {
-            "access_token": access_token,
-            "token_type": "bearer",
-            "user_id": existing_user.user_id,
-            "role": existing_user.role,
-            "name": existing_user.name
-        }
-        
-    except HTTPException:
-        # Re-raise HTTP exceptions (like invalid token)
-        raise
-    except Exception as e:
-        # Log unexpected errors
-        print(f"❌ Clerk authentication error: {str(e)}")
+@router.post("/register", response_model=Token)
+async def register_user(user_data: UserRegister):
+    # Check if username already exists
+    existing_user = await User.find_one(User.username == user_data.username)
+    if existing_user:
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Clerk authentication failed"
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Username already exists"
         )
+    
+    # Check if email already exists
+    existing_email = await User.find_one(User.email == user_data.email)
+    if existing_email:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email already exists"
+        )
+    
+    # Validate role
+    if user_data.role not in ["restaurant", "vendor"]:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Role must be either 'restaurant' or 'vendor'"
+        )
+    
+    # Get next user ID
+    last_user = await User.find().sort(-User.user_id).limit(1).first_or_none()
+    next_user_id = (last_user.user_id + 1) if last_user else 1
+    
+    # Hash password using bcrypt (for new users)
+    from ..auth_simple import get_password_hash
+    password_hash = get_password_hash(user_data.password)
+    
+    # Create new user
+    new_user = User(
+        user_id=next_user_id,
+        username=user_data.username,
+        password_hash=password_hash,
+        role=user_data.role,
+        name=user_data.name,
+        email=user_data.email,
+        phone=user_data.phone,
+        address=user_data.address,
+        description=user_data.description,
+        auth_provider="local",
+        is_active=True,
+        status="active"
+    )
+    
+    await new_user.insert()
+    
+    # Create access token for the new user
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        data={
+            "sub": new_user.username,
+            "user_id": new_user.user_id,
+            "role": new_user.role,
+            "name": new_user.name,
+            "is_impersonating": False
+        },
+        expires_delta=access_token_expires
+    )
+    
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "user_id": new_user.user_id,
+        "role": new_user.role,
+        "name": new_user.name
+    }

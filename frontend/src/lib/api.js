@@ -202,7 +202,7 @@ api.interceptors.response.use(
   (error) => {
     // Handle authentication errors - TEMPORARILY DISABLED FOR DEBUGGING
     if (error.response?.status === 401) {
-      console.error('🚨 401 AUTHENTICATION ERROR - Backend expects old JWT tokens but we\'re using Clerk!');
+      console.error('🚨 401 AUTHENTICATION ERROR');
       console.error('Error details:', {
         url: error.config?.url,
         method: error.config?.method,
@@ -212,9 +212,10 @@ api.interceptors.response.use(
         data: error.response?.data
       });
       
-      // TEMPORARILY COMMENTED OUT TO PREVENT REDIRECTS DURING DEBUGGING
-      // removeAuthToken();
-      // window.location.href = '/';
+      removeAuthToken();
+      if (typeof window !== 'undefined') {
+        window.location.href = '/sign-in';
+      }
     }
     
     // Handle API connectivity issues
@@ -277,12 +278,12 @@ export const authAPI = {
   
   // Email-based authentication endpoints
   emailLogin: async (email, password) => {
-    const response = await api.post('/auth/email/login', { email, password });
+    const response = await api.post('/auth/login', { username: email, password });
     return response.data;
   },
   
   register: async (userData) => {
-    const response = await api.post('/auth/email/register', userData);
+    const response = await api.post('/auth/register', userData);
     return response.data;
   },
   
@@ -424,8 +425,8 @@ export const adminAPI = {
     return response.data;
   },
   
-  impersonateUser: async (userId) => {
-    const response = await api.post(`/admin/users/${userId}/impersonate`);
+  impersonateUser: async (userId, reason = "Admin impersonation") => {
+    const response = await api.post(`/admin/users/${userId}/impersonate`, { reason });
     return response.data;
   },
   

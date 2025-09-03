@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { getAuthToken, getUser, removeAuthToken } from '../../src/lib/api';
 import AdminDashboard from '../../src/components/AdminDashboard';
 import AdminUserManagement from '../../src/components/AdminUserManagement';
 import AdminAuditLogs from '../../src/components/AdminAuditLogs';
@@ -14,28 +15,26 @@ export default function AdminPage() {
   const router = useRouter();
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    const userData = localStorage.getItem('user');
+    const token = getAuthToken();
+    const userData = getUser();
     
     if (!token || !userData) {
-      router.push('/');
+      router.push('/sign-in');
       return;
     }
 
-    const parsedUser = JSON.parse(userData);
-    if (parsedUser.role !== 'admin') {
+    if (userData.role !== 'admin') {
       router.push('/dashboard');
       return;
     }
 
-    setUser(parsedUser);
+    setUser(userData);
     setLoading(false);
   }, [router]);
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    router.push('/');
+    removeAuthToken();
+    router.push('/sign-in');
   };
 
   if (loading) {

@@ -213,7 +213,12 @@ async def start_impersonation(user_id: int, impersonation_request: Impersonation
     )
     
     expires_at = datetime.utcnow() + timedelta(minutes=IMPERSONATION_TOKEN_EXPIRE_MINUTES)
+    
+    last_session = await ImpersonationSession.find().sort(-ImpersonationSession.session_id_num).limit(1).first_or_none()
+    next_session_id = (last_session.session_id_num + 1) if last_session else 1
+    
     session = ImpersonationSession(
+        session_id_num=next_session_id,
         admin_id=admin.user_id,
         target_user_id=target_user.user_id,
         session_token=impersonation_token,
