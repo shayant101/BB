@@ -47,7 +47,10 @@ const nextConfig = {
   
   // Image optimization
   images: {
-    domains: ['lh3.googleusercontent.com'], // For Google profile pictures
+    domains: [
+      'lh3.googleusercontent.com', // For Google profile pictures
+      'images.unsplash.com' // For landing page images
+    ],
     formats: ['image/webp', 'image/avif'],
   },
   

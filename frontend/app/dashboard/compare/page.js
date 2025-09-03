@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useUser } from '@clerk/nextjs';
 import PriceComparisonTool from '../../../src/components/PriceComparisonTool';
 import {
   ArrowLeftIcon,
@@ -10,45 +9,15 @@ import {
 } from '@heroicons/react/24/outline';
 
 export default function ComparePage() {
-  const { isLoaded, isSignedIn, user: clerkUser } = useUser();
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
   const router = useRouter();
 
-  useEffect(() => {
-    if (isLoaded) {
-      if (!isSignedIn) {
-        router.push('/');
-        return;
-      }
-
-      // Create user object from Clerk data
-      const userData = {
-        id: clerkUser.id,
-        name: clerkUser.fullName || clerkUser.firstName || 'User',
-        email: clerkUser.primaryEmailAddress?.emailAddress || '',
-        role: 'restaurant' // Default role for now
-      };
-
-      setUser(userData);
-      setLoading(false);
-    }
-  }, [isLoaded, isSignedIn, clerkUser, router]);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading price comparison tool...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!user) {
-    return null;
-  }
+  // Hardcoded user for demonstration until new auth is implemented
+  const user = {
+    id: 'user_placeholder_id',
+    name: 'Demo Restaurant',
+    email: 'demo@bistroboard.com',
+    role: 'restaurant'
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
