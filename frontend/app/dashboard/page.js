@@ -4,6 +4,7 @@ console.log("--- Rendering DashboardPage ---");
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUser, useClerk } from '@clerk/nextjs';
+import { profilesAPI } from '../../src/lib/api';
 import RestaurantDashboard from '../../src/components/RestaurantDashboard';
 import VendorDashboard from '../../src/components/VendorDashboard';
 
@@ -21,12 +22,30 @@ export default function Dashboard() {
         return;
       }
 
-      // For now, we'll use a default role since we need to implement role management
-      // In a real app, you'd fetch this from your backend or store it in Clerk metadata
-      setUserRole('restaurant'); // Default role for testing
-      setLoading(false);
+      // Fetch user profile to get their role
+      fetchUserProfile();
     }
   }, [isLoaded, isSignedIn, router]);
+
+  const fetchUserProfile = async () => {
+    try {
+      const profile = await profilesAPI.getProfile();
+      
+      // If user doesn't have a role set, redirect to role selection
+      if (!profile.role) {
+        router.push('/sign-up/role-selection');
+        return;
+      }
+      
+      setUserRole(profile.role);
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+      // If there's an error, redirect to role selection as fallback
+      router.push('/sign-up/role-selection');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleLogout = async () => {
     await signOut();

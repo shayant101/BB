@@ -26,6 +26,9 @@ class UserProfileUpdateRequest(BaseModel):
     address: str
     description: Optional[str] = None
 
+class SetRoleRequest(BaseModel):
+    role: str
+
 # Dependency to get current user from Clerk JWT token
 async def get_current_user(authorization: str = Header(None)):
     if not authorization or not authorization.startswith("Bearer "):
@@ -73,7 +76,7 @@ async def get_current_user(authorization: str = Header(None)):
                 email=email,
                 phone="",
                 address="",
-                role="restaurant",
+                role=None,
                 clerk_user_id=clerk_user_id,
                 auth_provider="clerk",
                 is_active=True,
@@ -164,3 +167,24 @@ async def get_all_vendors(current_user: User = Depends(get_current_user)):
             description=v.description
         ) for v in vendors
     ]
+
+@router.post("/set-role", response_model=dict)
+async def set_user_role(
+    request: SetRoleRequest,
+    current_user: User = Depends(get_current_user)
+):
+    """Set the role for the currently authenticated user."""
+    # Validate the input role
+    if request.role not in ["vendor", "restaurant"]:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid role specified"
+        )
+    
+    # Update the current user's role
+    current_user.role = request.role
+    
+    # Save the updated user to the database
+    await current_user.save()
+    
+    return {"message": f"User role updated to {request.role}"}

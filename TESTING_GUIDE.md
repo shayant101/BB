@@ -10,7 +10,19 @@ BistroBoard is a marketplace platform connecting restaurants with vendors, featu
 
 ## Pre-Testing Setup
 
-### 1. Environment Verification
+### 1. System Dependencies Check
+**Before starting servers, verify Node.js/npm are available:**
+```bash
+# Run diagnostic script
+~/check_node_setup.sh
+
+# Quick verification
+node --version && npm --version
+```
+
+**If commands fail**, see [Node.js/npm PATH Configuration](#issue-nodejsnpm-commands-not-found-path-configuration) troubleshooting section.
+
+### 2. Environment Verification
 ```bash
 # Backend (Terminal 1)
 cd "bistroboard 2/backend"
@@ -21,7 +33,7 @@ cd "bistroboard 2/frontend"
 npm run dev -- --turbo
 ```
 
-### 2. Service Health Checks
+### 3. Service Health Checks
 ```bash
 # Backend health
 curl http://localhost:8000/health
@@ -30,7 +42,7 @@ curl http://localhost:8000/health
 curl -I http://localhost:3000
 ```
 
-### 3. Database Connection
+### 4. Database Connection
 Verify MongoDB Atlas connection in backend logs:
 ```
 ✅ Successfully connected to MongoDB Atlas
@@ -304,6 +316,74 @@ After any code changes, verify:
 - [ ] Real-time updates (if implemented)
 
 ## Troubleshooting Common Issues
+
+### Issue: Node.js/npm Commands Not Found (PATH Configuration)
+**Symptoms**:
+- `zsh: command not found: node` or `zsh: command not found: npm`
+- Frontend server fails to start with "command not found" errors
+- Previously working setup suddenly stops working
+
+**Root Cause Analysis**:
+This issue typically occurs due to shell profile configuration mismatches:
+
+1. **Shell Profile Mismatch**: macOS uses `zsh` by default, but Homebrew may only be configured in `~/.bash_profile`
+2. **Missing zsh Configuration**: No `~/.zprofile` or `~/.zshrc` files to load Homebrew PATH for zsh sessions
+3. **Terminal Environment**: VSCode terminals may not inherit the correct PATH configuration
+4. **System PATH Loading**: Inconsistent loading of `/etc/paths.d/homebrew` across different terminal types
+
+**Diagnostic Command**:
+```bash
+~/check_node_setup.sh
+```
+
+**Expected Healthy Output**:
+```
+🔍 Node.js/npm Setup Diagnostic Script
+======================================
+🖥️  System Info:
+Shell: /bin/zsh
+User: user1
+
+📁 Shell Profile Files:
+~/.bash_profile exists: ✅ YES
+~/.zprofile exists: ✅ YES
+~/.zshrc exists: ✅ YES
+
+🛤️  PATH Configuration:
+Homebrew in PATH: ✅ YES
+
+🍺 Homebrew Status:
+Homebrew installed: ✅ YES
+/etc/paths.d/homebrew exists: ✅ YES
+
+📦 Node.js/npm Status:
+Node.js available: ✅ YES (v24.7.0)
+npm available: ✅ YES (11.5.1)
+
+🧪 Fresh Shell Test:
+Fresh zsh can find node: ✅ YES
+```
+
+**Quick Fix Commands**:
+```bash
+# Create missing zsh profile files
+echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zprofile
+echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zshrc
+
+# Reload current shell
+source ~/.zprofile
+
+# Test the fix
+node --version && npm --version
+```
+
+**Prevention**:
+The system now includes triple-layer PATH protection:
+- **Layer 1**: System-wide `/etc/paths.d/homebrew`
+- **Layer 2**: User shell profiles (`.bash_profile`, `.zprofile`, `.zshrc`)
+- **Layer 3**: Homebrew's own PATH management
+
+**Backup Location**: `~/shell_config_backup/` contains timestamped backups of all shell configurations.
 
 ### Issue: Orders showing product IDs instead of names
 **Solution**: Verify CartModal sends `name` field and backend uses `item.name`

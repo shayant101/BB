@@ -69,23 +69,63 @@ def verify_token(token: str) -> Dict[str, Any]:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Could not validate credentials")
 
 async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)) -> User:
-    payload = verify_token(credentials.credentials)
+    print(f"🔍 AUTH DEBUG - get_current_user called")
+    print(f"🔍 Token received: {credentials.credentials[:50]}..." if credentials.credentials else "No token")
+    
+    try:
+        payload = verify_token(credentials.credentials)
+        print(f"🔍 Token payload: {payload}")
+    except Exception as e:
+        print(f"❌ Token verification failed: {e}")
+        raise
+    
     username = payload.get("sub")
+    print(f"🔍 Username from token: {username}")
+    
     if not username:
+        print(f"❌ No username in token payload")
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
     
+    # Special case for hardcoded admin - bypass database lookup
+    if username == "admin" and payload.get("user_id") == 999999:
+        print(f"✅ Using hardcoded admin user")
+        # This is the special hardcoded admin.
+        # Return a User object directly without a database lookup.
+        return User(
+            user_id=999999,
+            username="admin",
+            role="admin",
+            email="admin@bistroboard.com",
+            name="System Administrator",
+            phone="555-0000",
+            address="Admin Office"
+        )
+    
+    print(f"🔍 Looking up user in database: {username}")
     user = await User.find_one(User.username == username)
     if not user:
+        print(f"❌ User not found in database: {username}")
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
     
+    print(f"✅ User found: {user.username}, role: {user.role}")
+    
     if not payload.get("is_impersonating", False) and not user.is_active:
+        print(f"❌ User account is deactivated")
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User account is deactivated")
     
     return user
 
 async def get_current_admin(current_user: User = Depends(get_current_user)) -> User:
+    print(f"🔍 ADMIN AUTH DEBUG - get_current_admin called")
+    print(f"🔍 Current user: {current_user}")
+    print(f"🔍 User role: {current_user.role if current_user else 'No user'}")
+    print(f"🔍 User ID: {current_user.user_id if current_user else 'No user'}")
+    
     if current_user.role != "admin":
+        print(f"❌ ADMIN AUTH FAILED - User role '{current_user.role}' is not 'admin'")
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin access required")
+    
+    print(f"✅ ADMIN AUTH SUCCESS - User {current_user.username} is admin")
     return current_user
 
 async def log_admin_action(admin_id: int, action: str, target_user_id: Optional[int] = None, details: Optional[Dict[str, Any]] = None, request: Optional[Request] = None):

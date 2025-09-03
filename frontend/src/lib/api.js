@@ -120,13 +120,21 @@ export const getUser = () => {
 // Token initialization is now handled in a client-side component
 // to ensure it only runs in the browser.
 
-// Request interceptor to add Clerk auth token
+// Request interceptor to add auth token (backend JWT or Clerk)
 api.interceptors.request.use(
   async (config) => {
     console.log('🔍 API Request Interceptor triggered for:', config.url);
     
     try {
-      // Check if we're in browser environment and Clerk is available
+      // First, check for backend JWT token (for admin and backend login)
+      const backendToken = safeLocalStorage.getItem('token');
+      if (backendToken) {
+        console.log('✅ Using backend JWT token for:', config.url);
+        config.headers.Authorization = `Bearer ${backendToken}`;
+        return config;
+      }
+      
+      // If no backend token, try Clerk authentication
       if (typeof window !== 'undefined' && window.Clerk) {
         console.log('🔍 Clerk is available, checking user state...');
         
@@ -147,9 +155,9 @@ api.interceptors.request.use(
           });
           
           if (session) {
-            console.log('🔍 Attempting to get token...');
+            console.log('🔍 Attempting to get Clerk token...');
             const token = await session.getToken();
-            console.log('🔍 Token result:', {
+            console.log('🔍 Clerk token result:', {
               hasToken: !!token,
               tokenLength: token?.length,
               tokenPreview: token ? `${token.substring(0, 20)}...` : 'No token'
@@ -157,16 +165,16 @@ api.interceptors.request.use(
             
             if (token) {
               config.headers.Authorization = `Bearer ${token}`;
-              console.log('✅ Authorization header set for:', config.url);
+              console.log('✅ Clerk authorization header set for:', config.url);
               return config;
             } else {
-              console.log('❌ Failed to get token from session');
+              console.log('❌ Failed to get token from Clerk session');
             }
           } else {
-            console.log('❌ No session available');
+            console.log('❌ No Clerk session available');
           }
         } else {
-          console.log('❌ No user signed in');
+          console.log('❌ No Clerk user signed in');
         }
       } else {
         console.log('❌ Clerk not available in window');
@@ -345,6 +353,11 @@ export const profilesAPI = {
   
   getRestaurants: async () => {
     const response = await api.get('/profiles/restaurants');
+    return response.data;
+  },
+  
+  setRole: async (role) => {
+    const response = await api.post('/profiles/set-role', { role });
     return response.data;
   }
 };
